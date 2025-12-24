@@ -5,6 +5,12 @@ An API tester written in Go
   <img src="https://github.com/Yalaouf/gostman/blob/main/logo.png" alt="Gostman Logo"/>
 </p>
 
+## Disclaimer
+
+This project is in its early stages and is not yet feature-complete. Use it at your own risk.\
+This is a personal project and is not affiliated with any company or organization.
+The main goal is to learn and have fun. If it becomes useful to others, that's a bonus!
+
 ## Why
 
 I was sick of using bloated electron based apps for simple API testing. I wanted a
@@ -26,13 +32,14 @@ Finally, I wanted to improve my Go skills by building a real-world application (
 
 You only need to install Go and to clone the repository and run `go build` to get a binary.
 
-For the Go installation instructions, please refer to the [official Go website](https://go.dev/doc/install).
+> For the Go installation instructions, please refer to the [official Go website](https://go.dev/doc/install).
 
+To install Gostman, run the following commands:
 
 ```bash
 git clone https://github.com/Yalaouf/gostman
 cd gostman
-make build
+go build
 ```
 
 This will create a binary named `gostman` (or `gostman.exe` on Windows) in the current directory.
@@ -46,9 +53,11 @@ go install github.com/Yalaouf/gostman@latest
 - [Bubble Tea](https://github.com/charmbracelet/bubbletea) - A powerful, elegant, and fun TUI framework for Go.
 - [Testify](https://github.com/stretchr/testify) - A toolkit with common assertions and mocks that plays nicely with the standard library.
 
-That's it! No other dependencies are required.
+That's it! No other dependencies are required. (not like other languages that
+need a million packages for simple tasks, looking at you JavaScript/TypeScript).
 
-## Comming Soon
+## Coming Soon
+- The TUI itself
 - Save requests
 - Collections
 - Environment variables
