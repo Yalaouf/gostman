@@ -98,7 +98,7 @@ func TestSendRequest(t *testing.T) {
 		res, err := SendRequest(req)
 
 		assert.Nil(t, res)
-		assert.ErrorContains(t, err, "Timeout")
+		assert.ErrorContains(t, err, "context deadline exceeded")
 	})
 
 	t.Run("should handle io.ReadAll error", func(t *testing.T) {

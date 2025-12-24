@@ -1,6 +1,7 @@
 package request
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"strings"
@@ -8,7 +9,14 @@ import (
 )
 
 func SendRequest(model *Model) (*Response, error) {
-	req, err := http.NewRequest(model.MethodString(), model.URL, nil)
+	ctx := model.Ctx
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(model.Timeout)*time.Millisecond)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, model.MethodString(), model.URL, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -18,17 +26,14 @@ func SendRequest(model *Model) (*Response, error) {
 		model.Method == PATCH ||
 		model.Method == DELETE {
 		req.Body = io.NopCloser(strings.NewReader(model.Body))
+		req.ContentLength = int64(len(model.Body))
 	}
 
 	for key, value := range model.Header {
 		req.Header.Add(key, value)
 	}
 
-	req.ContentLength = int64(len(model.Body))
-
-	client := &http.Client{
-		Timeout: time.Duration(model.Timeout) * time.Millisecond,
-	}
+	client := http.DefaultClient
 
 	startTime := time.Now()
 
@@ -47,15 +52,9 @@ func SendRequest(model *Model) (*Response, error) {
 
 	response := &Response{
 		StatusCode: resp.StatusCode,
-		Header:     make(map[string]string),
+		Header:     resp.Header,
 		TimeTaken:  timeTaken,
 		Body:       string(bodyBytes),
-	}
-
-	for key, values := range resp.Header {
-		if len(values) > 0 {
-			response.Header[key] = values[0]
-		}
 	}
 
 	return response, nil

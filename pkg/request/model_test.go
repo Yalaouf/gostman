@@ -1,6 +1,7 @@
 package request
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -30,6 +31,15 @@ func TestNewModel(t *testing.T) {
 
 func TestModelSetters(t *testing.T) {
 	t.Parallel()
+
+	t.Run("SetContext should set the context", func(t *testing.T) {
+		model := NewModel()
+		ctx := context.Background()
+		model.SetContext(ctx)
+
+		assert.NotNil(t, model.Ctx)
+		assert.Equal(t, ctx, model.Ctx)
+	})
 
 	t.Run("SetMethod should set the method", func(t *testing.T) {
 		model := NewModel()

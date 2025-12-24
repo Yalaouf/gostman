@@ -1,23 +1,26 @@
 package request
 
-type httpMethod string
+import "context"
+
+type HttpMethod string
 
 const (
-	GET     httpMethod = "GET"
-	POST    httpMethod = "POST"
-	PUT     httpMethod = "PUT"
-	DELETE  httpMethod = "DELETE"
-	PATCH   httpMethod = "PATCH"
-	OPTIONS httpMethod = "OPTIONS"
-	HEAD    httpMethod = "HEAD"
-	TRACE   httpMethod = "TRACE"
-	CONNECT httpMethod = "CONNECT"
+	GET     HttpMethod = "GET"
+	POST    HttpMethod = "POST"
+	PUT     HttpMethod = "PUT"
+	DELETE  HttpMethod = "DELETE"
+	PATCH   HttpMethod = "PATCH"
+	OPTIONS HttpMethod = "OPTIONS"
+	HEAD    HttpMethod = "HEAD"
+	TRACE   HttpMethod = "TRACE"
+	CONNECT HttpMethod = "CONNECT"
 )
 
 const DefaultTimeout int64 = 30000
 
 type Model struct {
-	Method  httpMethod
+	Ctx     context.Context
+	Method  HttpMethod
 	URL     string
 	Body    string
 	Header  map[string]string
@@ -27,6 +30,6 @@ type Model struct {
 type Response struct {
 	TimeTaken  int64 // in milliseconds
 	StatusCode int
-	Header     map[string]string
+	Header     map[string][]string
 	Body       string
 }

@@ -1,5 +1,7 @@
 package request
 
+import "context"
+
 func NewModel() *Model {
 	return &Model{
 		Header:  make(map[string]string),
@@ -7,7 +9,12 @@ func NewModel() *Model {
 	}
 }
 
-func (m *Model) SetMethod(method httpMethod) *Model {
+func (m *Model) SetContext(ctx context.Context) *Model {
+	m.Ctx = ctx
+	return m
+}
+
+func (m *Model) SetMethod(method HttpMethod) *Model {
 	m.Method = method
 	return m
 }
