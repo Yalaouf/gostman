@@ -1,6 +1,10 @@
 # gostman
 An API tester written in Go
 
+<p align="center">
+  <img src="https://github.com/Yalaouf/gostman/blob/main/logo.png" alt="Gostman Logo"/>
+</p>
+
 ## Why
 
 I was sick of using bloated electron based apps for simple API testing. I wanted a
