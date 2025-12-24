@@ -1,4 +1,4 @@
-# gostman
+# Gostman
 An API tester written in Go
 
 <p align="center">
