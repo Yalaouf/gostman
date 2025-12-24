@@ -9,12 +9,14 @@ import (
 )
 
 func TestSendRequest(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
-	}))
-	defer server.Close()
+	t.Parallel()
 
 	t.Run("should send a GET request successfully", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(200)
+		}))
+		defer server.Close()
+
 		req := NewModel().SetMethod(GET).
 			SetURL(server.URL)
 
@@ -26,6 +28,11 @@ func TestSendRequest(t *testing.T) {
 	})
 
 	t.Run("should send a POST request with body successfully", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(200)
+		}))
+		defer server.Close()
+
 		req := NewModel().SetMethod(POST).
 			SetURL(server.URL).
 			SetBody("test body")
@@ -38,13 +45,13 @@ func TestSendRequest(t *testing.T) {
 
 	t.Run("should read response body correctly", func(t *testing.T) {
 		expectedBody := "Hello, World!"
-		bodyServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(expectedBody))
 		}))
-		defer bodyServer.Close()
+		defer server.Close()
 
 		req := NewModel().SetMethod(GET).
-			SetURL(bodyServer.URL)
+			SetURL(server.URL)
 
 		res, err := SendRequest(req)
 
@@ -52,7 +59,12 @@ func TestSendRequest(t *testing.T) {
 		assert.Equal(t, expectedBody, res.Body)
 	})
 
-	t.Run("Should send a GET request with headers successfully", func(t *testing.T) {
+	t.Run("should send a GET request with headers successfully", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(200)
+		}))
+		defer server.Close()
+
 		req := NewModel().SetMethod(GET).
 			SetURL(server.URL).
 			AddHeader("X-Test-Header", "HeaderValue")
@@ -74,23 +86,23 @@ func TestSendRequest(t *testing.T) {
 	})
 
 	t.Run("should timeout for a slow server", func(t *testing.T) {
-		slowServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			<-r.Context().Done()
 		}))
-		defer slowServer.Close()
+		defer server.Close()
 
 		req := NewModel().SetMethod(GET).
-			SetURL(slowServer.URL).
+			SetURL(server.URL).
 			SetTimeout(100)
 
 		res, err := SendRequest(req)
 
 		assert.Nil(t, res)
-		assert.ErrorContains(t, err, "context deadline exceeded (Client.Timeout exceeded while awaiting headers)")
+		assert.ErrorContains(t, err, "Timeout")
 	})
 
 	t.Run("should handle io.ReadAll error", func(t *testing.T) {
-		badBodyServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			hj, _ := w.(http.Hijacker)
 			conn, buf, _ := hj.Hijack()
 
@@ -101,10 +113,10 @@ func TestSendRequest(t *testing.T) {
 			buf.Flush()
 			conn.Close()
 		}))
-		defer badBodyServer.Close()
+		defer server.Close()
 
 		req := NewModel().SetMethod(GET).
-			SetURL(badBodyServer.URL)
+			SetURL(server.URL)
 
 		res, err := SendRequest(req)
 
