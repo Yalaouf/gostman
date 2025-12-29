@@ -24,11 +24,11 @@ type Model struct {
 	URL     string
 	Body    string
 	Header  map[string]string
-	Timeout int64 // in milliseconds
+	Timeout int64
 }
 
 type Response struct {
-	TimeTaken  int64 // in milliseconds
+	TimeTaken  int64
 	StatusCode int
 	Header     map[string][]string
 	Body       string

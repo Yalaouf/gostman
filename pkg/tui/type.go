@@ -1,10 +1,29 @@
 package tui
 
-import "github.com/Yalaouf/gostman/pkg/request"
+import (
+	"github.com/Yalaouf/gostman/pkg/request"
+	"github.com/charmbracelet/bubbles/textinput"
+	"github.com/charmbracelet/lipgloss/list"
+)
+
+type requestMsg struct {
+	response request.Response
+	err      error
+}
 
 type Model struct {
-	Method request.HttpMethod
-	URL    string
-	Body   string
-	Header map[string]string
+	urlInput     textinput.Model
+	methodsList  []list.Items
+	focusSection uint
+	req          request.Model
+	loading      bool
+	response     request.Response
+	errorMsg     string
 }
+
+const (
+	METHOD = iota
+	URL
+	HEADERS
+	BODY
+)

@@ -1,19 +1,10 @@
 package tui
 
 import (
-	"github.com/Yalaouf/gostman/pkg/request"
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-func initialModel() Model {
-	return Model{
-		Method: request.GET,
-		URL:    "",
-		Body:   "",
-		Header: make(map[string]string),
-	}
-}
-
 func (m Model) Init() tea.Cmd {
-	return nil
+	return textinput.Blink
 }

@@ -5,7 +5,8 @@ import (
 )
 
 func Gostman() {
-	p := tea.NewProgram(initialModel())
+	m := New()
+	p := tea.NewProgram(m, tea.WithAltScreen())
 
 	if _, err := p.Run(); err != nil {
 		panic(err)

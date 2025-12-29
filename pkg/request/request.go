@@ -13,6 +13,7 @@ func SendRequest(model *Model) (*Response, error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
+
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(model.Timeout)*time.Millisecond)
 	defer cancel()
 
