@@ -63,7 +63,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			case "k", "up":
 				if m.focusSection == METHOD {
-					m.methodIndex = (m.methodIndex - 1) % len(m.methods)
+					m.methodIndex = (m.methodIndex - 1 + len(m.methods)) % len(m.methods)
 					m.req.SetMethod(m.methods[m.methodIndex])
 				}
 				return m, nil

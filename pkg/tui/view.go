@@ -4,14 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Yalaouf/gostman/pkg/request"
 	"github.com/charmbracelet/lipgloss"
-)
-
-var (
-	selectedStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("#a6e3a1"))
-	unselectedStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#6c7086"))
-	focusedBorder   = lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(lipgloss.Color("#cba6f7"))
 )
 
 func displayTitle() string {
@@ -25,7 +18,7 @@ func displayMethod(m Model) string {
 		if i == m.methodIndex {
 			b.WriteString(selectedStyle.Render("▸ " + string(method)))
 		} else {
-			b.WriteString(selectedStyle.Render("  " + string(method)))
+			b.WriteString(unselectedStyle.Render("  " + string(method)))
 		}
 		b.WriteString("\n")
 	}
@@ -40,65 +33,74 @@ func displayMethod(m Model) string {
 
 func displayMethodAndUrl(m Model) string {
 	method := selectedStyle.Render(string(m.methods[m.methodIndex]))
-	return method + m.urlInput.View() + "\n\n"
+	content := method + " " + m.urlInput.View()
+
+	return sectionBox("Request", content, m.focusSection == URL, m.width)
 }
 
-func displayHeaders() string {
-	return "Headers\n\n"
+func displayHeaders(m Model) string {
+	content := "Content-Type: application/json\n"
+	return sectionBox("Headers", content, m.focusSection == HEADERS, m.width/2)
 }
 
-func displayBody() string {
-	return "Body\n\n"
+func displayBody(m Model) string {
+	content := "{ }\n"
+	return sectionBox("Body", content, m.focusSection == BODY, m.width/2)
 }
 
 func displayResult(m Model) string {
-	s := ""
+	var b strings.Builder
 
-	s += "Result\n"
-	s += fmt.Sprintf("Time taken: %dms\n", m.res.TimeTaken)
-	s += fmt.Sprintf("Status: %d\n\n", m.res.StatusCode)
-	s += fmt.Sprintf("Body: %s\n\n", m.res.Body)
-
-	s += "Result headers\n"
-	for key, value := range m.res.Header {
-		s += fmt.Sprintf("%s: %s\n", key, value)
-	}
-
-	s += "\n\n"
-
-	return s
+	b.WriteString(fmt.Sprintf("Status %d  •  Time: %dms\n\n", m.res.StatusCode, m.res.TimeTaken))
+	b.WriteString(m.res.Body)
+	return sectionBox("Response", b.String(), false, m.width)
 }
 
-func displayError(m Model) string {
-	return errorStyle.Render(fmt.Sprintf("Error: %s\n\n", m.errorMsg))
+func sectionBox(title, content string, focused bool, width int) string {
+	style := sectionStyle
+	if focused {
+		style = focusedSectionStyle
+	}
+
+	header := sectionTitleStyle.Render(title)
+	body := style.Width(width - 4).Render(content)
+
+	return header + "\n" + body
 }
 
 func (m Model) View() string {
-	b := strings.Builder{}
+	top := displayMethodAndUrl(m)
 
-	b.WriteString(displayTitle())
-	b.WriteString(displayMethodAndUrl(m))
-	b.WriteString(displayHeaders())
+	headers := displayHeaders(m)
+	body := displayBody(m)
+	middle := lipgloss.JoinHorizontal(lipgloss.Top, headers, body)
 
-	if m.req.Method != request.GET {
-		b.WriteString(displayBody())
-	}
-
-	if m.focusSection == METHOD {
-		b.WriteString(displayMethod(m))
-	}
-
+	var bottom string
 	if m.res.StatusCode != 0 {
-		b.WriteString(displayResult(m))
+		bottom = displayResult(m)
 	}
 
+	var status string
 	if m.loading {
-		b.WriteString("loading.....\n")
+		status = "Loading..."
 	}
 
 	if m.errorMsg != "" {
-		b.WriteString(displayError(m))
+		status = errorStyle.Render("Error: ", m.errorMsg)
 	}
 
-	return b.String()
+	var methodPicker string
+	if m.focusSection == METHOD {
+		methodPicker = displayMethod(m)
+	}
+
+	return lipgloss.JoinVertical(
+		lipgloss.Left,
+		displayTitle(),
+		methodPicker,
+		top,
+		middle,
+		bottom,
+		status,
+	)
 }
