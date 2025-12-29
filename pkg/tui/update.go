@@ -9,20 +9,25 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.height = msg.Height
+		m.urlInput.Width = msg.Width - 10
+		return m, nil
 	case requestMsg:
 		m.loading = false
 		if msg.err != nil {
 			m.errorMsg = msg.err.Error()
 			return m, nil
 		}
-		m.response = msg.response
+		m.res = msg.response
 		return m, nil
 	case tea.KeyMsg:
 		if !m.urlInput.Focused() {
 			switch msg.String() {
 			case "q", "ctrl+c":
 				return m, tea.Quit
-			case "0":
+			case "m":
 				m.focusSection = METHOD
 				m.urlInput.Blur()
 				return m, nil
@@ -30,18 +35,38 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.focusSection = URL
 				m.urlInput.Focus()
 				return m, textinput.Blink
-			case "2":
+			case "h":
 				m.focusSection = HEADERS
 				m.urlInput.Blur()
 				return m, nil
-			case "3":
+			case "b":
 				m.focusSection = BODY
 				m.urlInput.Blur()
 				return m, nil
 			case "enter":
-				m.loading = true
-				m.errorMsg = ""
-				return m, m.sendRequest()
+				switch m.focusSection {
+				case METHOD:
+					m.req.SetMethod(m.methods[m.methodIndex])
+					m.focusSection = URL
+					m.urlInput.Focus()
+					return m, textinput.Blink
+				default:
+					m.loading = true
+					m.errorMsg = ""
+					return m, m.sendRequest()
+				}
+			case "j", "down":
+				if m.focusSection == METHOD {
+					m.methodIndex = (m.methodIndex + 1) % len(m.methods)
+					m.req.SetMethod(m.methods[m.methodIndex])
+				}
+				return m, nil
+			case "k", "up":
+				if m.focusSection == METHOD {
+					m.methodIndex = (m.methodIndex - 1) % len(m.methods)
+					m.req.SetMethod(m.methods[m.methodIndex])
+				}
+				return m, nil
 			}
 		}
 		if msg.String() == "esc" {

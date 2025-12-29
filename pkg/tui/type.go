@@ -3,7 +3,6 @@ package tui
 import (
 	"github.com/Yalaouf/gostman/pkg/request"
 	"github.com/charmbracelet/bubbles/textinput"
-	"github.com/charmbracelet/lipgloss/list"
 )
 
 type requestMsg struct {
@@ -12,13 +11,21 @@ type requestMsg struct {
 }
 
 type Model struct {
-	urlInput     textinput.Model
-	methodsList  []list.Items
+	width  int
+	height int
+
+	loading  bool
+	errorMsg string
+
+	urlInput textinput.Model
+
+	methods     []request.HttpMethod
+	methodIndex int
+
 	focusSection uint
-	req          request.Model
-	loading      bool
-	response     request.Response
-	errorMsg     string
+
+	req request.Model
+	res request.Response
 }
 
 const (
