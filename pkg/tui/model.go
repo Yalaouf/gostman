@@ -112,7 +112,8 @@ func (m Model) View() string {
 }
 
 func (m Model) displayTitle() string {
-	return style.Title.Render("Gostman\n\n")
+	title := style.Title.Render("GOSTMAN")
+	return lipgloss.PlaceHorizontal(m.width, lipgloss.Center, title)
 }
 
 func (m Model) handleWindowSize(msg tea.WindowSizeMsg) Model {
