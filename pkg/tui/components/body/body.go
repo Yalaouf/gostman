@@ -1,30 +1,129 @@
 package body
 
 import (
+	"strings"
+
 	"github.com/Yalaouf/gostman/pkg/tui/style"
+	"github.com/charmbracelet/bubbles/textarea"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 type Model struct {
-	Content string
-	Focused bool
+	Editor   textarea.Model
+	BodyType Type
+	Focused  bool
+	EditMode bool
 }
 
 func New() Model {
+	ta := textarea.New()
+	ta.Placeholder = `{"key": "value"}`
+	ta.ShowLineNumbers = false
+	ta.CharLimit = 0
+	ta.SetWidth(40)
+	ta.SetHeight(4)
+	ta.FocusedStyle.CursorLine = style.TextArea
+	ta.BlurredStyle.CursorLine = style.TextArea
+
 	return Model{
-		Content: "{ }",
-		Focused: false,
+		Editor:   ta,
+		BodyType: TypeNone,
+		Focused:  false,
+		EditMode: false,
 	}
 }
 
-func (m *Model) Focus() {
+func (m Model) Value() string {
+	if m.BodyType == TypeNone {
+		return ""
+	}
+	return m.Editor.Value()
+}
+
+func (m Model) Type() Type {
+	return m.BodyType
+}
+
+func (m *Model) SetSize(width, height int) {
+	m.Editor.SetWidth(width - 6)
+	m.Editor.SetHeight(height - 1)
+}
+
+func (m *Model) Focus() tea.Cmd {
 	m.Focused = true
+	m.EditMode = false
+	return nil
 }
 
 func (m *Model) Blur() {
 	m.Focused = false
+	m.EditMode = false
+	m.Editor.Blur()
+}
+
+func (m Model) IsFocused() bool {
+	return m.EditMode && m.Editor.Focused()
+}
+
+func (m *Model) NextType() {
+	idx := int(m.BodyType)
+	idx = (idx + 1) % len(AllTypes)
+	m.BodyType = AllTypes[idx]
+}
+
+func (m *Model) PrevType() {
+	idx := int(m.BodyType)
+	idx = (idx - 1 + len(AllTypes)) % len(AllTypes)
+	m.BodyType = AllTypes[idx]
+}
+
+func (m *Model) EnterEditMode() tea.Cmd {
+	if m.BodyType == TypeNone {
+		return nil
+	}
+	m.EditMode = true
+	return m.Editor.Focus()
+}
+
+func (m *Model) ExitEditMode() {
+	m.EditMode = false
+	m.Editor.Blur()
+}
+
+func (m *Model) Update(msg tea.Msg) tea.Cmd {
+	if m.EditMode {
+		var cmd tea.Cmd
+		m.Editor, cmd = m.Editor.Update(msg)
+		return cmd
+	}
+	return nil
 }
 
 func (m Model) View(width int) string {
-	content := m.Content + "\n"
-	return style.SectionBox("Body", content, m.Focused, width)
+	tabs := m.renderTabs()
+
+	var content string
+	if m.BodyType == TypeNone {
+		content = style.Unselected.Render("No body")
+	} else {
+		content = m.Editor.View()
+	}
+
+	body := tabs + "\n" + content
+	return style.SectionBox("Body", body, m.Focused, width)
+}
+
+func (m Model) renderTabs() string {
+	var tabs []string
+
+	for _, t := range AllTypes {
+		label := t.String()
+		if t == m.BodyType {
+			tabs = append(tabs, style.Selected.Render("["+label+"]"))
+		} else {
+			tabs = append(tabs, style.Unselected.Render(" "+label+" "))
+		}
+	}
+
+	return strings.Join(tabs, " ")
 }

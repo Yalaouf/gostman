@@ -18,6 +18,7 @@ var (
 	Unselected   = lipgloss.NewStyle().Foreground(ColorGray)
 	SectionTitle = lipgloss.NewStyle().Bold(true).Foreground(ColorText)
 	TextInput    = lipgloss.NewStyle().Foreground(ColorText)
+	TextArea     = lipgloss.NewStyle()
 )
 
 var (

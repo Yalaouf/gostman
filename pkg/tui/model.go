@@ -67,6 +67,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.handleURLInput(msg)
 	}
 
+	if m.focusSection == FocusBody {
+		return m.handleBodyInput(msg)
+	}
+
 	return m, nil
 }
 
@@ -115,6 +119,7 @@ func (m Model) handleWindowSize(msg tea.WindowSizeMsg) Model {
 	m.width = msg.Width
 	m.height = msg.Height
 	m.url.SetWidth(msg.Width - 10)
+	m.body.SetSize(msg.Width/2, 5)
 	m.response.SetSize(msg.Width-4, msg.Height/3)
 	return m
 }
@@ -151,8 +156,7 @@ func (m Model) handleFocusChange(section FocusSection) (Model, tea.Cmd) {
 		m.headers.Focus()
 		return m, nil
 	case FocusBody:
-		m.body.Focus()
-		return m, nil
+		return m, m.body.Focus()
 	case FocusResult:
 		m.response.Focus()
 		return m, nil
@@ -170,6 +174,10 @@ func (m Model) handleNavigation(key string) Model {
 			m.method.Previous()
 		}
 		m.req.SetMethod(m.method.Selected())
+	case FocusBody:
+		if key == KeyTab {
+			m.body.NextType()
+		}
 	case FocusResult:
 		if key == KeyJ || key == KeyDown {
 			m.response.ScrollDown(1)
@@ -198,6 +206,8 @@ func (m Model) handleEnter() (Model, tea.Cmd) {
 	case FocusMethod:
 		m.req.SetMethod(m.method.Selected())
 		return m.handleFocusChange(FocusURL)
+	case FocusBody:
+		return m, m.body.EnterEditMode()
 	default:
 		m.loading = true
 		m.errorMsg = ""
@@ -206,8 +216,14 @@ func (m Model) handleEnter() (Model, tea.Cmd) {
 }
 
 func (m Model) handleEscape() (Model, tea.Cmd) {
-	if m.focusSection == FocusMethod {
+	switch m.focusSection {
+	case FocusMethod:
 		m.focusSection = FocusURL
+	case FocusBody:
+		if m.body.IsFocused() {
+			m.body.ExitEditMode()
+			return m, nil
+		}
 	}
 	m.url.Blur()
 	return m, nil
@@ -216,6 +232,12 @@ func (m Model) handleEscape() (Model, tea.Cmd) {
 func (m Model) handleURLInput(msg tea.Msg) (Model, tea.Cmd) {
 	cmd := m.url.Update(msg)
 	m.req.SetURL(m.url.Value())
+	return m, cmd
+}
+
+func (m Model) handleBodyInput(msg tea.Msg) (Model, tea.Cmd) {
+	cmd := m.body.Update(msg)
+	m.req.SetBody(m.body.Value())
 	return m, cmd
 }
 
@@ -234,8 +256,19 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m.handleURLInput(msg)
 	}
 
+	if m.body.IsFocused() {
+		return m.handleBodyInput(msg)
+	}
+
 	if key == KeyQuit {
 		return m, tea.Quit
+	}
+
+	if m.focusSection == FocusBody {
+		switch key {
+		case KeyH, KeyL, KeyLeft, KeyRight, KeyTab:
+			return m.handleNavigation(key), nil
+		}
 	}
 
 	switch key {
@@ -274,6 +307,11 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 func (m Model) sendRequest() tea.Cmd {
 	return func() tea.Msg {
 		m.req.SetTimeout(30000)
+
+		if contentType := m.body.Type().ContentType(); contentType != "" {
+			m.req.AddHeader("Content-Type", contentType)
+		}
+
 		res, err := request.SendRequest(&m.req)
 		if err != nil {
 			return requestMsg{err: err}

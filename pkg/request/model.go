@@ -30,6 +30,9 @@ func (m *Model) SetBody(body string) *Model {
 }
 
 func (m *Model) AddHeader(key, value string) *Model {
+	if m.Header == nil {
+		m.Header = make(map[string]string)
+	}
 	m.Header[key] = value
 	return m
 }
