@@ -25,7 +25,7 @@ func TestNewModel(t *testing.T) {
 	t.Run("should have an initialized header map", func(t *testing.T) {
 		model := NewModel()
 
-		assert.NotNil(t, model.Header)
+		assert.NotNil(t, model.Headers)
 	})
 }
 
@@ -77,7 +77,7 @@ func TestModelSetters(t *testing.T) {
 		key := "Content-Type"
 		value := "application/json"
 		model.AddHeader(key, value)
-		assert.Equal(t, value, model.Header[key])
+		assert.Equal(t, value, model.Headers[key])
 	})
 
 	t.Run("SetTimeout should set a valid timeout", func(t *testing.T) {

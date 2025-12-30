@@ -4,7 +4,7 @@ import "context"
 
 func NewModel() *Model {
 	return &Model{
-		Header:  make(map[string]string),
+		Headers: make(map[string]string),
 		Timeout: DefaultTimeout,
 	}
 }
@@ -30,10 +30,10 @@ func (m *Model) SetBody(body string) *Model {
 }
 
 func (m *Model) AddHeader(key, value string) *Model {
-	if m.Header == nil {
-		m.Header = make(map[string]string)
+	if m.Headers == nil {
+		m.Headers = make(map[string]string)
 	}
-	m.Header[key] = value
+	m.Headers[key] = value
 	return m
 }
 

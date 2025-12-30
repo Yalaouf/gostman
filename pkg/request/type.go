@@ -23,13 +23,13 @@ type Model struct {
 	Method  HttpMethod
 	URL     string
 	Body    string
-	Header  map[string]string
+	Headers map[string]string
 	Timeout int64
 }
 
 type Response struct {
 	TimeTaken  int64
 	StatusCode int
-	Header     map[string][]string
+	Headers    map[string][]string
 	Body       string
 }

@@ -30,7 +30,7 @@ func SendRequest(model *Model) (*Response, error) {
 		req.ContentLength = int64(len(model.Body))
 	}
 
-	for key, value := range model.Header {
+	for key, value := range model.Headers {
 		req.Header.Add(key, value)
 	}
 
@@ -53,7 +53,7 @@ func SendRequest(model *Model) (*Response, error) {
 
 	response := &Response{
 		StatusCode: resp.StatusCode,
-		Header:     resp.Header,
+		Headers:    resp.Header,
 		TimeTaken:  timeTaken,
 		Body:       string(bodyBytes),
 	}
