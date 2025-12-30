@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"strings"
+
 	"github.com/Yalaouf/gostman/pkg/request"
 	"github.com/Yalaouf/gostman/pkg/tui/components/body"
 	"github.com/Yalaouf/gostman/pkg/tui/components/headers"
@@ -75,6 +77,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
+	// Fullscreen method picker
+	if m.focusSection == FocusMethod {
+		picker := m.method.View()
+		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, picker)
+	}
+
 	top := m.url.ViewWithMethod(m.method.ViewSelected(), m.width-2)
 
 	headersView := m.headers.View(m.width / 2)
@@ -86,29 +94,36 @@ func (m Model) View() string {
 		bottom = m.response.View()
 	}
 
-	var status string
+	var statusLeft string
 	if m.loading {
-		status = "Loading..."
+		statusLeft = "Loading..."
 	}
 
 	if m.errorMsg != "" {
-		status = style.Error.Render("Error: ", m.errorMsg)
+		statusLeft = style.Error.Render("Error: ", m.errorMsg)
 	}
 
-	var methodPicker string
-	if m.focusSection == FocusMethod {
-		methodPicker = m.method.View()
-	}
+	helpHint := style.Unselected.Render("Press ? for help")
+	status := lipgloss.NewStyle().Width(m.width - 2).Render(
+		lipgloss.JoinHorizontal(lipgloss.Top, statusLeft, lipgloss.PlaceHorizontal(m.width-2-lipgloss.Width(statusLeft), lipgloss.Right, helpHint)),
+	)
 
-	return lipgloss.JoinVertical(
+	mainContent := lipgloss.JoinVertical(
 		lipgloss.Left,
 		m.displayTitle(),
-		methodPicker,
 		top,
 		middle,
 		bottom,
-		status,
 	)
+
+	contentHeight := lipgloss.Height(mainContent)
+	spacerHeight := m.height - contentHeight - 1
+	spacer := ""
+	if spacerHeight > 0 {
+		spacer = strings.Repeat("\n", spacerHeight-1)
+	}
+
+	return lipgloss.JoinVertical(lipgloss.Left, mainContent, spacer, status)
 }
 
 func (m Model) displayTitle() string {
@@ -121,7 +136,7 @@ func (m Model) handleWindowSize(msg tea.WindowSizeMsg) Model {
 	m.height = msg.Height
 	m.url.SetWidth(msg.Width - 10)
 	m.body.SetSize(msg.Width/2, msg.Height/5)
-	m.response.SetSize(msg.Width-4, msg.Height/3)
+	m.response.SetSize(msg.Width-4, msg.Height/2)
 	return m
 }
 
