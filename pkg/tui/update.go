@@ -70,6 +70,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		if msg.String() == "esc" {
+			if m.focusSection == METHOD {
+				m.focusSection = URL
+			}
 			m.urlInput.Blur()
 			return m, nil
 		}
