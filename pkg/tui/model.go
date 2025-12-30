@@ -209,11 +209,9 @@ func (m Model) handleEnter() (Model, tea.Cmd) {
 		return m.handleFocusChange(FocusURL)
 	case FocusBody:
 		return m, m.body.EnterEditMode()
-	default:
-		m.loading = true
-		m.errorMsg = ""
-		return m, m.sendRequest()
 	}
+
+	return m, nil
 }
 
 func (m Model) handleEscape() (Model, tea.Cmd) {
@@ -244,6 +242,12 @@ func (m Model) handleBodyInput(msg tea.Msg) (Model, tea.Cmd) {
 
 func (m Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	key := msg.String()
+
+	if key == KeyAltEnter {
+		m.loading = true
+		m.errorMsg = ""
+		return m, m.sendRequest()
+	}
 
 	if key == KeyEscape {
 		return m.handleEscape()
