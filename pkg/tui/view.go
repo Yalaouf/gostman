@@ -1,9 +1,9 @@
 package tui
 
 import (
-	"fmt"
 	"strings"
 
+	"github.com/charmbracelet/bubbles/viewport"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -35,7 +35,7 @@ func displayMethodAndUrl(m Model) string {
 	method := selectedStyle.Render(string(m.methods[m.methodIndex]))
 	content := method + " " + m.urlInput.View()
 
-	return sectionBox("Request", content, m.focusSection == URL, m.width)
+	return sectionBox("Request", content, m.focusSection == URL, m.width-2)
 }
 
 func displayHeaders(m Model) string {
@@ -49,11 +49,51 @@ func displayBody(m Model) string {
 }
 
 func displayResult(m Model) string {
-	var b strings.Builder
+	header := sectionTitleStyle.Render("Response")
 
-	b.WriteString(fmt.Sprintf("Status %d  •  Time: %dms\n\n", m.res.StatusCode, m.res.TimeTaken))
-	b.WriteString(m.res.Body)
-	return sectionBox("Response", b.String(), false, m.width)
+	borderColor := lipgloss.Color("#6c7086")
+	if m.focusSection == RESULT {
+		borderColor = lipgloss.Color("#cba6f7")
+	}
+
+	scrollbarStyle := lipgloss.NewStyle().Foreground(borderColor).MarginLeft(1)
+
+	scrollbar := scrollbarStyle.Render(renderScrollbar(m.responseView))
+
+	body := lipgloss.JoinHorizontal(lipgloss.Top, m.responseView.View(), scrollbar)
+
+	return header + "\n" + body
+}
+
+func renderScrollbar(viewport viewport.Model) string {
+	height := viewport.Height
+	if height <= 0 {
+		return ""
+	}
+
+	totalLines := viewport.TotalLineCount()
+
+	if totalLines <= height {
+		return strings.Repeat(trackChar+"\n", height)
+	}
+
+	thumbSize := max(1, height*height/totalLines)
+	thumbPos := int(viewport.ScrollPercent() * float64(height-thumbSize))
+
+	var b strings.Builder
+	for i := range height {
+		if i >= thumbPos && i < thumbPos+thumbSize {
+			b.WriteString(thumbChar)
+		} else {
+			b.WriteString(trackChar)
+		}
+
+		if i < height-1 {
+			b.WriteString("\n")
+		}
+	}
+
+	return b.String()
 }
 
 func sectionBox(title, content string, focused bool, width int) string {

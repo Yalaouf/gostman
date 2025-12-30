@@ -3,6 +3,7 @@ package tui
 import (
 	"github.com/Yalaouf/gostman/pkg/request"
 	"github.com/charmbracelet/bubbles/textinput"
+	"github.com/charmbracelet/bubbles/viewport"
 )
 
 type requestMsg struct {
@@ -22,6 +23,8 @@ type Model struct {
 	methods     []request.HttpMethod
 	methodIndex int
 
+	responseView viewport.Model
+
 	focusSection uint
 
 	req request.Model
@@ -33,4 +36,5 @@ const (
 	URL
 	HEADERS
 	BODY
+	RESULT
 )

@@ -11,4 +11,10 @@ var (
 	sectionStyle        = lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(lipgloss.Color("#6c7086")).Padding(0, 1)
 	focusedSectionStyle = lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(lipgloss.Color("#cba6f7")).Padding(0, 1)
 	sectionTitleStyle   = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#cdd6f4"))
+	viewportStyle       = lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(lipgloss.Color("#6c7086")).Padding(0, 1)
+)
+
+const (
+	trackChar = "▒"
+	thumbChar = "▓"
 )

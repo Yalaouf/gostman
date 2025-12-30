@@ -3,6 +3,7 @@ package tui
 import (
 	"github.com/Yalaouf/gostman/pkg/request"
 	"github.com/charmbracelet/bubbles/textinput"
+	"github.com/charmbracelet/bubbles/viewport"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -18,10 +19,14 @@ func New() Model {
 		request.TRACE, request.CONNECT,
 	}
 
+	v := viewport.New(80, 10)
+	v.Style = viewportStyle
+
 	return Model{
 		urlInput:     t,
 		methods:      methods,
 		methodIndex:  0,
 		focusSection: URL,
+		responseView: v,
 	}
 }
