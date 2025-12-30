@@ -1,0 +1,284 @@
+package tui
+
+import (
+	"github.com/Yalaouf/gostman/pkg/request"
+	"github.com/Yalaouf/gostman/pkg/tui/components/body"
+	"github.com/Yalaouf/gostman/pkg/tui/components/headers"
+	"github.com/Yalaouf/gostman/pkg/tui/components/method"
+	"github.com/Yalaouf/gostman/pkg/tui/components/response"
+	"github.com/Yalaouf/gostman/pkg/tui/components/url"
+	"github.com/Yalaouf/gostman/pkg/tui/style"
+	"github.com/charmbracelet/bubbles/textinput"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+)
+
+type requestMsg struct {
+	response request.Response
+	err      error
+}
+
+type Model struct {
+	width  int
+	height int
+
+	loading  bool
+	errorMsg string
+
+	focusSection FocusSection
+
+	method   method.Model
+	url      url.Model
+	headers  headers.Model
+	body     body.Model
+	response response.Model
+
+	req request.Model
+}
+
+func New() Model {
+	return Model{
+		focusSection: FocusURL,
+		method:       method.New(),
+		url:          url.New(),
+		headers:      headers.New(),
+		body:         body.New(),
+		response:     response.New(),
+	}
+}
+
+func (m Model) Init() tea.Cmd {
+	return textinput.Blink
+}
+
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		return m.handleWindowSize(msg), nil
+
+	case requestMsg:
+		return m.handleRequestComplete(msg), nil
+
+	case tea.KeyMsg:
+		return m.handleKeyMsg(msg)
+	}
+
+	if m.focusSection == FocusURL {
+		return m.handleURLInput(msg)
+	}
+
+	return m, nil
+}
+
+func (m Model) View() string {
+	top := m.url.ViewWithMethod(m.method.ViewSelected(), m.width-2)
+
+	headersView := m.headers.View(m.width / 2)
+	bodyView := m.body.View(m.width / 2)
+	middle := lipgloss.JoinHorizontal(lipgloss.Top, headersView, bodyView)
+
+	var bottom string
+	if m.response.HasResponse() {
+		bottom = m.response.View()
+	}
+
+	var status string
+	if m.loading {
+		status = "Loading..."
+	}
+
+	if m.errorMsg != "" {
+		status = style.Error.Render("Error: ", m.errorMsg)
+	}
+
+	var methodPicker string
+	if m.focusSection == FocusMethod {
+		methodPicker = m.method.View()
+	}
+
+	return lipgloss.JoinVertical(
+		lipgloss.Left,
+		m.displayTitle(),
+		methodPicker,
+		top,
+		middle,
+		bottom,
+		status,
+	)
+}
+
+func (m Model) displayTitle() string {
+	return style.Title.Render("Gostman\n\n")
+}
+
+func (m Model) handleWindowSize(msg tea.WindowSizeMsg) Model {
+	m.width = msg.Width
+	m.height = msg.Height
+	m.url.SetWidth(msg.Width - 10)
+	m.response.SetSize(msg.Width-4, msg.Height/3)
+	return m
+}
+
+func (m Model) handleRequestComplete(msg requestMsg) Model {
+	m.loading = false
+
+	if msg.err != nil {
+		m.errorMsg = msg.err.Error()
+		return m
+	}
+
+	m.response.SetResponse(msg.response)
+	return m
+}
+
+func (m Model) handleFocusChange(section FocusSection) (Model, tea.Cmd) {
+	m.focusSection = section
+
+	m.method.Blur()
+	m.url.Blur()
+	m.headers.Blur()
+	m.body.Blur()
+	m.response.Blur()
+
+	switch section {
+	case FocusMethod:
+		m.method.Focus()
+		return m, nil
+	case FocusURL:
+		m.url.Focused = true
+		return m, m.url.Focus()
+	case FocusHeaders:
+		m.headers.Focus()
+		return m, nil
+	case FocusBody:
+		m.body.Focus()
+		return m, nil
+	case FocusResult:
+		m.response.Focus()
+		return m, nil
+	}
+
+	return m, nil
+}
+
+func (m Model) handleNavigation(key string) Model {
+	switch m.focusSection {
+	case FocusMethod:
+		if key == KeyJ || key == KeyDown {
+			m.method.Next()
+		} else {
+			m.method.Previous()
+		}
+		m.req.SetMethod(m.method.Selected())
+	case FocusResult:
+		if key == KeyJ || key == KeyDown {
+			m.response.ScrollDown(1)
+		} else {
+			m.response.ScrollUp(1)
+		}
+	}
+	return m
+}
+
+func (m Model) handleScroll(key string) Model {
+	if m.focusSection != FocusResult {
+		return m
+	}
+
+	if key == KeyG {
+		m.response.GotoTop()
+	} else {
+		m.response.GotoBottom()
+	}
+	return m
+}
+
+func (m Model) handleEnter() (Model, tea.Cmd) {
+	switch m.focusSection {
+	case FocusMethod:
+		m.req.SetMethod(m.method.Selected())
+		return m.handleFocusChange(FocusURL)
+	default:
+		m.loading = true
+		m.errorMsg = ""
+		return m, m.sendRequest()
+	}
+}
+
+func (m Model) handleEscape() (Model, tea.Cmd) {
+	if m.focusSection == FocusMethod {
+		m.focusSection = FocusURL
+	}
+	m.url.Blur()
+	return m, nil
+}
+
+func (m Model) handleURLInput(msg tea.Msg) (Model, tea.Cmd) {
+	cmd := m.url.Update(msg)
+	m.req.SetURL(m.url.Value())
+	return m, cmd
+}
+
+func (m Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	key := msg.String()
+
+	if key == KeyEscape {
+		return m.handleEscape()
+	}
+
+	if key == KeyCtrlC {
+		return m, tea.Quit
+	}
+
+	if m.url.IsFocused() {
+		return m.handleURLInput(msg)
+	}
+
+	if key == KeyQuit {
+		return m, tea.Quit
+	}
+
+	switch key {
+	case KeyMethod:
+		return m.handleFocusChange(FocusMethod)
+	case KeyInput:
+		return m.handleFocusChange(FocusURL)
+	case KeyHeaders:
+		return m.handleFocusChange(FocusHeaders)
+	case KeyBody:
+		return m.handleFocusChange(FocusBody)
+	case KeyResult:
+		if m.response.HasResponse() {
+			return m.handleFocusChange(FocusResult)
+		}
+		return m, nil
+	}
+
+	switch key {
+	case KeyJ, KeyDown, KeyK, KeyUp:
+		return m.handleNavigation(key), nil
+	}
+
+	switch key {
+	case KeyG, KeyShiftG:
+		return m.handleScroll(key), nil
+	}
+
+	if key == KeyEnter {
+		return m.handleEnter()
+	}
+
+	return m, nil
+}
+
+func (m Model) sendRequest() tea.Cmd {
+	return func() tea.Msg {
+		m.req.SetTimeout(30000)
+		res, err := request.SendRequest(&m.req)
+		if err != nil {
+			return requestMsg{err: err}
+		}
+
+		return requestMsg{response: *res}
+	}
+}
