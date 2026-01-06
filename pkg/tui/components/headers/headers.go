@@ -6,6 +6,7 @@ import (
 	"github.com/Yalaouf/gostman/pkg/tui/style"
 	"github.com/Yalaouf/gostman/pkg/tui/types"
 	"github.com/charmbracelet/bubbles/textinput"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -26,12 +27,13 @@ type Model struct {
 	showPresets  bool
 	presetCursor int
 	width        int
+	height       int
+	viewport     viewport.Model
 }
 
 func newTextInput(placeholder string) textinput.Model {
 	ti := textinput.New()
 	ti.Placeholder = placeholder
-	ti.CharLimit = 256
 
 	return ti
 }
@@ -47,6 +49,8 @@ func newHeader(key, value string, auto bool) Header {
 }
 
 func New() Model {
+	vp := viewport.New(40, 5)
+
 	return Model{
 		Headers: []Header{
 			newHeader("Content-Type", "application/json", true),
@@ -55,6 +59,7 @@ func New() Model {
 		fieldFocus: 0,
 		Focused:    false,
 		EditMode:   false,
+		viewport:   vp,
 	}
 }
 
@@ -96,8 +101,11 @@ func (m *Model) IsFocused() bool {
 	return m.EditMode || m.showPresets
 }
 
-func (m *Model) SetWidth(w int) {
-	m.width = w
+func (m *Model) SetSize(width, height int) {
+	m.width = width
+	m.height = height
+	m.viewport.Width = width - 4 // Account for border padding
+	m.viewport.Height = height
 }
 
 func (m *Model) SetContentType(contentType string) {
@@ -113,6 +121,7 @@ func (m *Model) SetContentType(contentType string) {
 				m.Headers[i].Value.SetValue(contentType)
 			}
 
+			m.updateViewportContent()
 			return
 		}
 	}
@@ -120,6 +129,7 @@ func (m *Model) SetContentType(contentType string) {
 	if contentType != "" {
 		h := newHeader("Content-Type", contentType, true)
 		m.Headers = append([]Header{h}, m.Headers...)
+		m.updateViewportContent()
 	}
 }
 
@@ -173,25 +183,33 @@ func (m *Model) updateNav(msg tea.Msg) tea.Cmd {
 	case types.KeyJ, types.KeyDown:
 		if m.cursor < len(m.Headers)-1 {
 			m.cursor++
+			m.ensureCursorVisible()
 		}
 	case types.KeyK, types.KeyUp:
 		if m.cursor > 0 {
 			m.cursor--
+			m.ensureCursorVisible()
 		}
 	case types.KeyEnter:
 		return m.EnterEditMode()
 	case types.KeyA:
 		m.addHeader("", "")
+		m.updateViewportContent()
+		m.ensureCursorVisible()
 		return m.EnterEditMode()
 	case types.KeyD:
 		m.deleteHeader()
+		m.updateViewportContent()
+		m.ensureCursorVisible()
 	case types.KeyP:
 		m.showPresets = true
 		m.presetCursor = 0
 	case types.KeySpace:
 		m.toggleHeader()
+		m.updateViewportContent()
 	}
 
+	m.updateViewportContent()
 	return nil
 }
 
@@ -202,6 +220,7 @@ func (m *Model) updateEdit(msg tea.Msg) tea.Cmd {
 		switch keyMsg.String() {
 		case types.KeyEscape:
 			m.ExitEditMode()
+			m.updateViewportContent()
 			return nil
 		case types.KeyTab:
 			m.Headers[m.cursor].Key.Blur()
@@ -213,6 +232,7 @@ func (m *Model) updateEdit(msg tea.Msg) tea.Cmd {
 			return m.Headers[m.cursor].Value.Focus()
 		case types.KeyEnter:
 			m.ExitEditMode()
+			m.updateViewportContent()
 			return nil
 		}
 	}
@@ -224,6 +244,7 @@ func (m *Model) updateEdit(msg tea.Msg) tea.Cmd {
 		m.Headers[m.cursor].Value, cmd = m.Headers[m.cursor].Value.Update(msg)
 	}
 
+	m.updateViewportContent()
 	return cmd
 }
 
@@ -246,6 +267,8 @@ func (m *Model) updatePresets(msg tea.Msg) tea.Cmd {
 		p := CommonPresets[m.presetCursor]
 		m.addHeader(p.Key, p.Value)
 		m.showPresets = false
+		m.updateViewportContent()
+		m.ensureCursorVisible()
 	case types.KeyEscape, types.KeyP:
 		m.showPresets = false
 	}
@@ -271,7 +294,7 @@ func (m Model) viewPresets(width int) string {
 	for i, p := range CommonPresets {
 		line := fmt.Sprintf("%s: %s", p.Key, p.Value)
 		if i == m.presetCursor {
-			line = lipgloss.NewStyle().Background(style.ColorPurple).Foreground(style.ColorText).Render("> " + line)
+			line = lipgloss.NewStyle().Background(style.ColorSurface).Foreground(style.ColorText).Render("> " + line)
 		} else {
 			line = " " + line
 		}
@@ -319,11 +342,7 @@ func (m Model) renderHeaderLine(index int, h Header) string {
 	return line
 }
 
-func (m Model) View(width int) string {
-	if m.showPresets {
-		return m.viewPresets(width)
-	}
-
+func (m *Model) updateViewportContent() {
 	var content string
 	if len(m.Headers) == 0 {
 		content = style.Unselected.Render("No headers (press 'a' to add)")
@@ -333,9 +352,24 @@ func (m Model) View(width int) string {
 			content += line + "\n"
 		}
 	}
+	m.viewport.SetContent(content)
+}
+
+func (m *Model) ensureCursorVisible() {
+	if m.cursor < m.viewport.YOffset {
+		m.viewport.SetYOffset(m.cursor)
+	} else if m.cursor >= m.viewport.YOffset+m.viewport.Height {
+		m.viewport.SetYOffset(m.cursor - m.viewport.Height + 1)
+	}
+}
+
+func (m Model) View(width int) string {
+	if m.showPresets {
+		return m.viewPresets(width)
+	}
 
 	footer := style.Unselected.Render("[a]dd [d]el [p]resets [space]toggle")
-	content += "\n" + footer
+	content := m.viewport.View() + "\n" + footer
 
 	return style.SectionBox("Headers", content, m.Focused, width)
 }
