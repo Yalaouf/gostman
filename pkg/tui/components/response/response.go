@@ -44,7 +44,6 @@ func (m *Model) SetResponse(res request.Response) {
 		body = utils.HighlightJSON(res.Body)
 	}
 
-	// Wrap content to viewport width
 	if m.Viewport.Width > 0 {
 		body = wordwrap.String(body, m.Viewport.Width-2)
 	}

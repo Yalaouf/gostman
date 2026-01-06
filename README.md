@@ -7,9 +7,9 @@ An API tester written in Go
 
 ## Disclaimer
 
-This project is in its early stages and is not yet feature-complete. Use it at your own risk.\
-This is a personal project and is not affiliated with any company or organization.
-The main goal is to learn and have fun. If it becomes useful to others, that's a bonus!
+This project is in its early stages and is not yet feature-complete.\
+I wrote this project just to have fun and get rid of the bloated Electron equivalent.\
+If it becomes useful to others, that's a bonus!
 
 ## Why
 
@@ -17,8 +17,8 @@ I was sick of using bloated electron based apps for simple API testing. I wanted
 lightweight tool that could do the job without consuming too many resources.\
 There are already some good alternatives like [HTTPie](https://github.com/httpie/cli),
 [curl](https://github.com/curl/curl), or [xh](https://github.com/ducaale/xh) but
-I wanted something with a TUI (not GUI to stay in flow mode) that was simple and easy to use.\
-Also I wanted no compromise for simplicity over features, so I decided to write my own.
+I wanted something with a TUI (not GUI to stay in terminal) that was simple and easy to use.\
+Also I wanted no compromise for simplicity over features, so I decided to write my own for fun.
 
 ## Why Go
 
@@ -53,14 +53,18 @@ go install github.com/Yalaouf/gostman@latest
 - [Bubble Tea](https://github.com/charmbracelet/bubbletea) - A powerful, elegant, and fun TUI framework for Go.
 - [Testify](https://github.com/stretchr/testify) - A toolkit with common assertions and mocks that plays nicely with the standard library.
 - [Chroma](https://github.com/alecthomas/chroma) - A general purpose syntax highlighter in pure Go
+- [WordWrap](https://github.com/muesli/reflow) - A collection of ANSI-aware methods and io.Writers helping you to transform blocks of text.
 
-That's it! No other dependencies are required. (not like other languages that
-need a million packages for simple tasks, looking at you JavaScript/TypeScript).
+That's it! No other dependencies are required. (unlike other languages...)
+
+## Demo
+
+https://github.com/user-attachments/assets/b3763027-323a-400b-b0f9-f217bdaf6fa0
 
 ## Coming Soon
 - Save requests and collections
 - Environment variables
 - Authentication methods (OAuth, Bearer, Basic, etc.)
 - Import Postman and Insomnia files
-- Adding more APIs (graphQL, gRPC, etc...)
+- Adding more protocols (graphQL, gRPC, etc...)
 - And more...
