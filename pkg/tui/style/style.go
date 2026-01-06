@@ -3,12 +3,14 @@ package style
 import "github.com/charmbracelet/lipgloss"
 
 var (
-	ColorRed    = lipgloss.Color("#ff0000")
-	ColorOrange = lipgloss.Color("#fab387")
-	ColorGreen  = lipgloss.Color("#a6e3a1")
+	ColorBlue   = lipgloss.Color("#89b4fa")
 	ColorGray   = lipgloss.Color("#6c7086")
+	ColorGreen  = lipgloss.Color("#a6e3a1")
+	ColorOrange = lipgloss.Color("#fab387")
 	ColorPurple = lipgloss.Color("#cba6f7")
+	ColorRed    = lipgloss.Color("#f38ba8")
 	ColorText   = lipgloss.Color("#cdd6f4")
+	ColorYellow = lipgloss.Color("#f9e2af")
 )
 
 var (
@@ -46,6 +48,8 @@ const (
 	TrackChar = "▒"
 	ThumbChar = "▓"
 )
+
+const ChromaStyle = "catppuccin-mocha"
 
 func SectionBox(title, content string, focused bool, width int) string {
 	style := Section

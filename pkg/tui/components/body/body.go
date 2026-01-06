@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/Yalaouf/gostman/pkg/tui/style"
+	"github.com/Yalaouf/gostman/pkg/tui/utils"
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -105,8 +106,15 @@ func (m Model) View(width int) string {
 	var content string
 	if m.BodyType == TypeNone {
 		content = style.Unselected.Render("No body")
-	} else {
+	} else if m.EditMode {
 		content = m.Editor.View()
+	} else {
+		raw := m.Editor.Value()
+		if utils.IsJSON(raw) {
+			content = utils.HighlightJSON(raw)
+		} else {
+			content = m.Editor.View()
+		}
 	}
 
 	body := tabs + "\n" + content

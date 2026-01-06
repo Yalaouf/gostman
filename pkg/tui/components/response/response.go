@@ -5,6 +5,7 @@ import (
 
 	"github.com/Yalaouf/gostman/pkg/request"
 	"github.com/Yalaouf/gostman/pkg/tui/style"
+	"github.com/Yalaouf/gostman/pkg/tui/utils"
 	"github.com/charmbracelet/bubbles/viewport"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -36,12 +37,19 @@ func (m *Model) SetSize(width, height int) {
 
 func (m *Model) SetResponse(res request.Response) {
 	m.Response = res
+
+	body := res.Body
+	if utils.IsJSON(res.Body) {
+		body = utils.HighlightJSON(res.Body)
+	}
+
 	content := fmt.Sprintf(
-		"Status %d  •  Time: %dms\n\n%s",
-		res.StatusCode,
-		res.TimeTaken,
-		res.Body,
+		"%s  •  %s\n\n%s",
+		colorStatusCode(res.StatusCode),
+		colorTimeTaken(res.TimeTaken),
+		body,
 	)
+
 	m.Viewport.SetContent(content)
 }
 

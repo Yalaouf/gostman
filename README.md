@@ -52,16 +52,15 @@ go install github.com/Yalaouf/gostman@latest
 ## Dependencies
 - [Bubble Tea](https://github.com/charmbracelet/bubbletea) - A powerful, elegant, and fun TUI framework for Go.
 - [Testify](https://github.com/stretchr/testify) - A toolkit with common assertions and mocks that plays nicely with the standard library.
+- [Chroma](https://github.com/alecthomas/chroma) - A general purpose syntax highlighter in pure Go
 
 That's it! No other dependencies are required. (not like other languages that
 need a million packages for simple tasks, looking at you JavaScript/TypeScript).
 
 ## Coming Soon
-- The TUI itself
-- Save requests
-- Collections
+- Save requests and collections
 - Environment variables
 - Authentication methods (OAuth, Bearer, Basic, etc.)
-- Syntax highlighting for JSON and XML responses
-- Export requests as curl commands
-- More to come...
+- Import Postman and Insomnia files
+- Adding more APIs (graphQL, gRPC, etc...)
+- And more...

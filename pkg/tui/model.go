@@ -136,7 +136,7 @@ func (m Model) handleWindowSize(msg tea.WindowSizeMsg) Model {
 	m.height = msg.Height
 	m.url.SetWidth(msg.Width - 10)
 	m.body.SetSize(msg.Width/2, msg.Height/5)
-	m.response.SetSize(msg.Width-4, msg.Height/2)
+	m.response.SetSize(msg.Width-4, msg.Height/2-1)
 	return m
 }
 
