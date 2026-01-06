@@ -104,7 +104,7 @@ func (m *Model) IsFocused() bool {
 func (m *Model) SetSize(width, height int) {
 	m.width = width
 	m.height = height
-	m.viewport.Width = width - 4 // Account for border padding
+	m.viewport.Width = width - 4
 	m.viewport.Height = height
 }
 

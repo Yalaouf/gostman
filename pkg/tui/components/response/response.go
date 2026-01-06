@@ -8,6 +8,7 @@ import (
 	"github.com/Yalaouf/gostman/pkg/tui/utils"
 	"github.com/charmbracelet/bubbles/viewport"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/reflow/wordwrap"
 )
 
 type Model struct {
@@ -43,14 +44,23 @@ func (m *Model) SetResponse(res request.Response) {
 		body = utils.HighlightJSON(res.Body)
 	}
 
+	// Wrap content to viewport width
+	if m.Viewport.Width > 0 {
+		body = wordwrap.String(body, m.Viewport.Width-2)
+	}
+
+	padding := "\n\n"
+
 	content := fmt.Sprintf(
-		"%s  •  %s\n\n%s",
+		"%s  •  %s\n\n%s%s",
 		colorStatusCode(res.StatusCode),
 		colorTimeTaken(res.TimeTaken),
 		body,
+		padding,
 	)
 
 	m.Viewport.SetContent(content)
+	m.Viewport.GotoTop()
 }
 
 func (m *Model) Focus() {

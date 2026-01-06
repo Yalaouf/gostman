@@ -80,7 +80,6 @@ func (m Model) statusBar() string {
 	rightWidth := lipgloss.Width(helpHint)
 	totalWidth := m.width - 2
 
-	// Center the keybinds
 	leftPad := (totalWidth-centerWidth)/2 - leftWidth
 	if leftPad < 1 {
 		leftPad = 1
