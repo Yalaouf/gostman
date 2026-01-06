@@ -49,7 +49,7 @@ func newHeader(key, value string, auto bool) Header {
 }
 
 func New() Model {
-	vp := viewport.New(40, 5)
+	vp := viewport.New(40, 4)
 
 	return Model{
 		Headers: []Header{
@@ -368,7 +368,7 @@ func (m Model) View(width int) string {
 		return m.viewPresets(width)
 	}
 
-	footer := style.Unselected.Render("[a]dd [d]el [p]resets [space]toggle")
+	footer := style.Unselected.Render("[a]dd [d]el [p]resets [space]toggle [tab]key<>value [esc/enter]validate")
 	content := m.viewport.View() + "\n" + footer
 
 	return style.SectionBox("Headers", content, m.Focused, width)

@@ -71,7 +71,8 @@ func (m Model) statusBar() string {
 		keyStyle.Render("[h]") + sepStyle.Render("eaders ") +
 		keyStyle.Render("[b]") + sepStyle.Render("ody ") +
 		keyStyle.Render("[r]") + sepStyle.Render("esponse ") +
-		keyStyle.Render("[esc]") + sepStyle.Render(" exit mode")
+		keyStyle.Render("[esc]") + sepStyle.Render(" exit mode ") +
+		keyStyle.Render("[alt-enter]") + sepStyle.Render(" send request")
 
 	helpHint := style.Unselected.Render("? help")
 

@@ -47,7 +47,7 @@ func (m Model) Type() Type {
 
 func (m *Model) SetSize(width, height int) {
 	m.Editor.SetWidth(width - 6)
-	m.Editor.SetHeight(height - 1)
+	m.Editor.SetHeight(height - 4)
 }
 
 func (m *Model) Focus() tea.Cmd {
@@ -117,7 +117,8 @@ func (m Model) View(width int) string {
 		}
 	}
 
-	body := tabs + "\n" + content
+	footer := style.Unselected.Render("[tab]switch type [enter]edit mode [esc]exit edit")
+	body := tabs + "\n" + content + "\n\n" + footer
 	return style.SectionBox("Body", body, m.Focused, width)
 }
 
