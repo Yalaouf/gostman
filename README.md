@@ -59,7 +59,7 @@ That's it! No other dependencies are required. (unlike other languages...)
 
 ## Demo
 
-https://github.com/user-attachments/assets/b3763027-323a-400b-b0f9-f217bdaf6fa0
+https://github.com/user-attachments/assets/6de7e915-c975-47e3-b07e-281aa690d5d3
 
 ## Coming Soon
 - Save requests and collections
