@@ -392,7 +392,7 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch key {
 	case types.KeyM:
 		return m.handleFocusChange(types.FocusMethod)
-	case types.KeyI:
+	case types.KeyU:
 		return m.handleFocusChange(types.FocusURL)
 	case types.KeyH:
 		return m.handleFocusChange(types.FocusHeaders)
