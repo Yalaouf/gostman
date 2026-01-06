@@ -27,6 +27,7 @@ type Model struct {
 
 	loading  bool
 	errorMsg string
+	showHelp bool
 
 	focusSection types.FocusSection
 
@@ -82,7 +83,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	// Fullscreen method picker
+	if m.showHelp {
+		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, m.viewHelp())
+	}
+
 	if m.focusSection == types.FocusMethod {
 		picker := m.method.View()
 		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, picker)
@@ -134,6 +138,53 @@ func (m Model) View() string {
 func (m Model) displayTitle() string {
 	title := style.Title.Render("GOSTMAN")
 	return lipgloss.PlaceHorizontal(m.width, lipgloss.Center, title)
+}
+
+func (m Model) viewHelp() string {
+	titleStyle := lipgloss.NewStyle().Bold(true).Foreground(style.ColorOrange)
+	keyStyle := lipgloss.NewStyle().Foreground(style.ColorGreen)
+	descStyle := lipgloss.NewStyle().Foreground(style.ColorText)
+
+	title := titleStyle.Render("Keyboard Shortcuts")
+
+	sections := []string{
+		titleStyle.Render("Navigation"),
+		keyStyle.Render("  i") + descStyle.Render("        Focus URL input"),
+		keyStyle.Render("  m") + descStyle.Render("        Focus method selector"),
+		keyStyle.Render("  h") + descStyle.Render("        Focus headers"),
+		keyStyle.Render("  b") + descStyle.Render("        Focus body"),
+		keyStyle.Render("  r") + descStyle.Render("        Focus response"),
+		"",
+		titleStyle.Render("Actions"),
+		keyStyle.Render("  Alt+Enter") + descStyle.Render(" Send request"),
+		keyStyle.Render("  Enter") + descStyle.Render("     Enter edit mode"),
+		keyStyle.Render("  Esc") + descStyle.Render("       Exit edit mode"),
+		keyStyle.Render("  q") + descStyle.Render("         Quit"),
+		"",
+		titleStyle.Render("Headers"),
+		keyStyle.Render("  a") + descStyle.Render("         Add new header"),
+		keyStyle.Render("  d") + descStyle.Render("         Delete header"),
+		keyStyle.Render("  p") + descStyle.Render("         Open presets"),
+		keyStyle.Render("  Space") + descStyle.Render("     Toggle header"),
+		keyStyle.Render("  j/k") + descStyle.Render("       Navigate up/down"),
+		"",
+		titleStyle.Render("Body"),
+		keyStyle.Render("  Tab") + descStyle.Render("       Cycle body type"),
+		"",
+		titleStyle.Render("Response"),
+		keyStyle.Render("  j/k") + descStyle.Render("       Scroll up/down"),
+		keyStyle.Render("  g/G") + descStyle.Render("       Go to top/bottom"),
+	}
+
+	content := lipgloss.JoinVertical(lipgloss.Left, sections...)
+
+	box := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(style.ColorPurple).
+		Padding(1, 3).
+		Render(title + "\n\n" + content + "\n\n" + style.Unselected.Render("Press ? or Esc to close"))
+
+	return box
 }
 
 func (m Model) handleWindowSize(msg tea.WindowSizeMsg) Model {
@@ -276,6 +327,19 @@ func (m Model) handleHeadersInput(msg tea.Msg) (Model, tea.Cmd) {
 
 func (m Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	key := msg.String()
+
+	if key == types.KeyQuestion {
+		m.showHelp = !m.showHelp
+		return m, nil
+	}
+
+	if m.showHelp {
+		if key == types.KeyEscape {
+			m.showHelp = false
+			return m, nil
+		}
+		return m, nil
+	}
 
 	if key == types.KeyAltEnter {
 		m.loading = true

@@ -28,4 +28,6 @@ const (
 	KeyQ      = "q"
 	KeyR      = "r"
 	KeyShiftG = "G"
+
+	KeyQuestion = "?"
 )
