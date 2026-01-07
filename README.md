@@ -54,8 +54,7 @@ go install github.com/Yalaouf/gostman@latest
 - [Testify](https://github.com/stretchr/testify) - A toolkit with common assertions and mocks that plays nicely with the standard library.
 - [Chroma](https://github.com/alecthomas/chroma) - A general purpose syntax highlighter in pure Go
 - [WordWrap](https://github.com/muesli/reflow) - A collection of ANSI-aware methods and io.Writers helping you to transform blocks of text.
-
-That's it! No other dependencies are required. (unlike other languages...)
+- [Uuid](https://www.github.com/google/uuid) - The uuid package generates and inspects UUIDs based on RFC 9562 and DCE 1.1: Authentication and Security Services.
 
 ## Demo
 
