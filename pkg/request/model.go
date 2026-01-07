@@ -29,6 +29,11 @@ func (m *Model) SetBody(body string) *Model {
 	return m
 }
 
+func (m *Model) SetBodyType(bodyType BodyType) *Model {
+	m.BodyType = bodyType
+	return m
+}
+
 func (m *Model) AddHeader(key, value string) *Model {
 	if m.Headers == nil {
 		m.Headers = make(map[string]string)

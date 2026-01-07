@@ -19,12 +19,13 @@ const (
 const DefaultTimeout int64 = 30000
 
 type Model struct {
-	Ctx     context.Context
-	Method  HttpMethod
-	URL     string
-	Body    string
-	Headers map[string]string
-	Timeout int64
+	Ctx      context.Context
+	Method   HttpMethod
+	URL      string
+	Body     string
+	BodyType BodyType
+	Headers  map[string]string
+	Timeout  int64
 }
 
 type Response struct {
@@ -33,3 +34,12 @@ type Response struct {
 	Headers    map[string][]string
 	Body       string
 }
+
+type BodyType uint
+
+const (
+	BodyTypeNone BodyType = iota
+	BodyTypeRaw
+	BodyTypeFormData
+	BodyTypeURLEncoded
+)

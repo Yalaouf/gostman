@@ -2,9 +2,9 @@ package request
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -17,17 +17,20 @@ func SendRequest(model *Model) (*Response, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Duration(model.Timeout)*time.Millisecond)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, model.MethodString(), model.URL, nil)
+	bodyReader, contentType, err := EncodeBody(model.Body, model.BodyType)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode body: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, model.MethodString(), model.URL, bodyReader)
 	if err != nil {
 		return nil, err
 	}
 
-	if model.Method == POST ||
-		model.Method == PUT ||
-		model.Method == PATCH ||
-		model.Method == DELETE {
-		req.Body = io.NopCloser(strings.NewReader(model.Body))
-		req.ContentLength = int64(len(model.Body))
+	if contentType != "" {
+		if _, exists := model.Headers["Content-Type"]; !exists {
+			req.Header.Set("Content-Type", contentType)
+		}
 	}
 
 	for key, value := range model.Headers {
