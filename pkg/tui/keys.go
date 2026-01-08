@@ -139,7 +139,6 @@ func (m Model) handleNavigation(key string) Model {
 		} else {
 			m.method.Previous()
 		}
-		m.req.SetMethod(m.method.Selected())
 	case types.FocusBody:
 		if key == types.KeyTab {
 			m.body.NextType()
@@ -171,7 +170,6 @@ func (m Model) handleScroll(key string) Model {
 func (m Model) handleEnter() (Model, tea.Cmd) {
 	switch m.focusSection {
 	case types.FocusMethod:
-		m.req.SetMethod(m.method.Selected())
 		return m.handleFocusChange(types.FocusURL)
 	case types.FocusBody:
 		return m, m.body.EnterEditMode()
@@ -203,13 +201,11 @@ func (m Model) handleEscape() (Model, tea.Cmd) {
 
 func (m Model) handleURLInput(msg tea.Msg) (Model, tea.Cmd) {
 	cmd := m.url.Update(msg)
-	m.req.SetURL(m.url.Value())
 	return m, cmd
 }
 
 func (m Model) handleBodyInput(msg tea.Msg) (Model, tea.Cmd) {
 	cmd := m.body.Update(msg)
-	m.req.SetBody(m.body.Value())
 	return m, cmd
 }
 

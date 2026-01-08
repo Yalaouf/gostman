@@ -4,7 +4,7 @@ type Type uint
 
 const (
 	TypeNone Type = iota
-	TypeRaw
+	TypeJSON
 	TypeFormData
 	TypeURLEncoded
 )
@@ -13,8 +13,8 @@ func (t Type) String() string {
 	switch t {
 	case TypeNone:
 		return "none"
-	case TypeRaw:
-		return "raw"
+	case TypeJSON:
+		return "json"
 	case TypeFormData:
 		return "form-data"
 	case TypeURLEncoded:
@@ -26,7 +26,7 @@ func (t Type) String() string {
 
 func (t Type) ContentType() string {
 	switch t {
-	case TypeRaw:
+	case TypeJSON:
 		return "application/json"
 	case TypeFormData:
 		return "multipart/form-data"
@@ -37,4 +37,4 @@ func (t Type) ContentType() string {
 	}
 }
 
-var AllTypes = []Type{TypeNone, TypeRaw, TypeFormData, TypeURLEncoded}
+var AllTypes = []Type{TypeNone, TypeJSON, TypeFormData, TypeURLEncoded}

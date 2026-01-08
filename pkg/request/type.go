@@ -1,19 +1,22 @@
 package request
 
-import "context"
+import (
+	"context"
+	"net/http"
+)
 
 type HttpMethod string
 
 const (
-	GET     HttpMethod = "GET"
-	POST    HttpMethod = "POST"
-	PUT     HttpMethod = "PUT"
-	DELETE  HttpMethod = "DELETE"
-	PATCH   HttpMethod = "PATCH"
-	OPTIONS HttpMethod = "OPTIONS"
-	HEAD    HttpMethod = "HEAD"
-	TRACE   HttpMethod = "TRACE"
-	CONNECT HttpMethod = "CONNECT"
+	GET     HttpMethod = http.MethodGet
+	POST    HttpMethod = http.MethodPost
+	PUT     HttpMethod = http.MethodPut
+	DELETE  HttpMethod = http.MethodDelete
+	PATCH   HttpMethod = http.MethodPatch
+	OPTIONS HttpMethod = http.MethodOptions
+	HEAD    HttpMethod = http.MethodHead
+	TRACE   HttpMethod = http.MethodTrace
+	CONNECT HttpMethod = http.MethodConnect
 )
 
 const DefaultTimeout int64 = 30000
@@ -26,6 +29,7 @@ type Model struct {
 	BodyType BodyType
 	Headers  map[string]string
 	Timeout  int64
+	Client   *http.Client
 }
 
 type Response struct {
@@ -39,7 +43,7 @@ type BodyType uint
 
 const (
 	BodyTypeNone BodyType = iota
-	BodyTypeRaw
+	BodyTypeJSON
 	BodyTypeFormData
 	BodyTypeURLEncoded
 )

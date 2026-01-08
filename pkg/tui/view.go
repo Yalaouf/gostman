@@ -71,8 +71,9 @@ func (m Model) statusBar() string {
 		keyStyle.Render("[h]") + sepStyle.Render("eaders ") +
 		keyStyle.Render("[b]") + sepStyle.Render("ody ") +
 		keyStyle.Render("[r]") + sepStyle.Render("esponse ") +
-		keyStyle.Render("[esc]") + sepStyle.Render(" exit mode ") +
-		keyStyle.Render("[alt-enter]") + sepStyle.Render(" send request")
+		keyStyle.Render("[esc]") + sepStyle.Render("exit mode ") +
+		keyStyle.Render("[alt-enter]") + sepStyle.Render("send request ") +
+		keyStyle.Render("[q]") + sepStyle.Render("uit")
 
 	helpHint := style.Unselected.Render("? help")
 
@@ -81,14 +82,8 @@ func (m Model) statusBar() string {
 	rightWidth := lipgloss.Width(helpHint)
 	totalWidth := m.width - 2
 
-	leftPad := (totalWidth-centerWidth)/2 - leftWidth
-	if leftPad < 1 {
-		leftPad = 1
-	}
-	rightPad := totalWidth - leftWidth - leftPad - centerWidth - rightWidth
-	if rightPad < 1 {
-		rightPad = 1
-	}
+	leftPad := max((totalWidth-centerWidth)/2-leftWidth, 1)
+	rightPad := max(totalWidth-leftWidth-leftPad-centerWidth-rightWidth, 1)
 
 	return statusLeft +
 		strings.Repeat(" ", leftPad) +

@@ -9,11 +9,11 @@ import (
 	"net/url"
 )
 
-func encodeURLEncoded(body string) string {
+func encodeURLEncoded(body string) (string, error) {
 	var data map[string]any
 
 	if err := json.Unmarshal([]byte(body), &data); err != nil {
-		return body
+		return "", fmt.Errorf("invalid JSON for url-encoded: %w", err)
 	}
 
 	values := url.Values{}
@@ -21,7 +21,7 @@ func encodeURLEncoded(body string) string {
 		values.Set(key, fmt.Sprintf("%v", val))
 	}
 
-	return values.Encode()
+	return values.Encode(), nil
 }
 
 func encodeFormData(body string) (io.Reader, string, error) {
@@ -53,10 +53,13 @@ func EncodeBody(body string, bodyType BodyType) (io.Reader, string, error) {
 	}
 
 	switch bodyType {
-	case BodyTypeRaw:
+	case BodyTypeJSON:
 		return bytes.NewReader([]byte(body)), "application/json", nil
 	case BodyTypeURLEncoded:
-		encoded := encodeURLEncoded(body)
+		encoded, err := encodeURLEncoded(body)
+		if err != nil {
+			return nil, "", err
+		}
 		return bytes.NewReader([]byte(encoded)), "application/x-www-form-urlencoded", nil
 	case BodyTypeFormData:
 		return encodeFormData(body)

@@ -37,7 +37,10 @@ func SendRequest(model *Model) (*Response, error) {
 		req.Header.Add(key, value)
 	}
 
-	client := http.DefaultClient
+	client := model.Client
+	if client == nil {
+		client = http.DefaultClient
+	}
 
 	startTime := time.Now()
 

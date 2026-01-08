@@ -2,6 +2,7 @@ package request
 
 import (
 	"context"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -93,5 +94,33 @@ func TestModelSetters(t *testing.T) {
 
 		model.SetTimeout(-1000)
 		assert.Equal(t, DefaultTimeout, model.Timeout)
+	})
+
+	t.Run("ClearHeaders should remove all headers", func(t *testing.T) {
+		model := NewModel()
+		model.AddHeader("Content-Type", "application/json")
+		model.AddHeader("Authorization", "Bearer token")
+
+		model.ClearHeaders()
+
+		assert.Empty(t, model.Headers)
+		assert.NotNil(t, model.Headers)
+	})
+
+	t.Run("SetClient should set the HTTP client", func(t *testing.T) {
+		model := NewModel()
+		client := &http.Client{}
+
+		model.SetClient(client)
+
+		assert.Equal(t, client, model.Client)
+	})
+
+	t.Run("SetBodyType should set the body type", func(t *testing.T) {
+		model := NewModel()
+
+		model.SetBodyType(BodyTypeJSON)
+
+		assert.Equal(t, BodyTypeJSON, model.BodyType)
 	})
 }

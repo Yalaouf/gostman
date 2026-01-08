@@ -32,8 +32,6 @@ type Model struct {
 	headers  headers.Model
 	body     body.Model
 	response response.Model
-
-	req request.Model
 }
 
 func New() Model {
@@ -104,7 +102,7 @@ func (m *Model) syncContentType() {
 	var contentType string
 
 	switch m.body.BodyType {
-	case body.TypeRaw:
+	case body.TypeJSON:
 		contentType = "application/json"
 	case body.TypeFormData:
 		contentType = "multipart/form-data"
@@ -117,15 +115,37 @@ func (m *Model) syncContentType() {
 	m.headers.SetContentType(contentType)
 }
 
+func (m Model) buildRequestModel() *request.Model {
+	req := request.NewModel()
+
+	req.SetURL(m.url.Value())
+	req.SetMethod(m.method.Selected())
+	req.SetBody(m.body.Value())
+	req.SetTimeout(30000)
+
+	switch m.body.BodyType {
+	case body.TypeJSON:
+		req.SetBodyType(request.BodyTypeJSON)
+	case body.TypeFormData:
+		req.SetBodyType(request.BodyTypeFormData)
+	case body.TypeURLEncoded:
+		req.SetBodyType(request.BodyTypeURLEncoded)
+	default:
+		req.SetBodyType(request.BodyTypeNone)
+	}
+
+	for key, value := range m.headers.EnabledHeaders() {
+		req.AddHeader(key, value)
+	}
+
+	return req
+}
+
 func (m Model) sendRequest() tea.Cmd {
 	return func() tea.Msg {
-		m.req.SetTimeout(30000)
+		req := m.buildRequestModel()
 
-		for key, value := range m.headers.EnabledHeaders() {
-			m.req.AddHeader(key, value)
-		}
-
-		res, err := request.SendRequest(&m.req)
+		res, err := request.SendRequest(req)
 		if err != nil {
 			return requestMsg{err: err}
 		}

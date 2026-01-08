@@ -1,6 +1,9 @@
 package request
 
-import "context"
+import (
+	"context"
+	"net/http"
+)
 
 func NewModel() *Model {
 	return &Model{
@@ -42,6 +45,11 @@ func (m *Model) AddHeader(key, value string) *Model {
 	return m
 }
 
+func (m *Model) ClearHeaders() *Model {
+	m.Headers = make(map[string]string)
+	return m
+}
+
 func (m *Model) MethodString() string {
 	return string(m.Method)
 }
@@ -52,5 +60,10 @@ func (m *Model) SetTimeout(timeout int64) *Model {
 	}
 
 	m.Timeout = timeout
+	return m
+}
+
+func (m *Model) SetClient(client *http.Client) *Model {
+	m.Client = client
 	return m
 }

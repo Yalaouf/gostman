@@ -5,23 +5,26 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestEncodeURLEncoded(t *testing.T) {
-	t.Run("should return the body as is if JSON is not valid", func(t *testing.T) {
+	t.Run("should return an error if JSON is not valid", func(t *testing.T) {
 		body := "not a valid JSON"
 
-		res := encodeURLEncoded(body)
+		res, err := encodeURLEncoded(body)
 
-		assert.Equal(t, body, res)
+		assert.Empty(t, res)
+		assert.ErrorContains(t, err, "invalid JSON for url-encoded")
 	})
 
-	t.Run("should return an encoding JSON if valid", func(t *testing.T) {
+	t.Run("should return an encoded JSON if valid", func(t *testing.T) {
 		body := "{\"valid\":\"json\"}"
 		wanted := "valid=json"
 
-		res := encodeURLEncoded(body)
+		res, err := encodeURLEncoded(body)
 
+		assert.NoError(t, err)
 		assert.Equal(t, wanted, res)
 	})
 }
@@ -60,9 +63,9 @@ func TestEncodeBody(t *testing.T) {
 		assert.Empty(t, ct)
 	})
 
-	t.Run("should return the unchanged body on BodyTypeRaw", func(t *testing.T) {
+	t.Run("should return the unchanged body on BodyTypeJSON", func(t *testing.T) {
 		body := "{\"key\":\"value\"}"
-		contentType := BodyTypeRaw
+		contentType := BodyTypeJSON
 
 		r, ct, err := EncodeBody(body, contentType)
 
@@ -74,13 +77,27 @@ func TestEncodeBody(t *testing.T) {
 	t.Run("should return the encoded body on BodyTypeURLEncoded", func(t *testing.T) {
 		body := "{\"key\":\"value\"}"
 		contentType := BodyTypeURLEncoded
-		encodedBody := encodeURLEncoded(body)
+
+		encoded, err := encodeURLEncoded(body)
+		require.NoError(t, err)
 
 		r, ct, err := EncodeBody(body, contentType)
 
 		assert.NoError(t, err)
-		assert.Equal(t, r, bytes.NewReader([]byte(encodedBody)))
+		assert.Equal(t, r, bytes.NewReader([]byte(encoded)))
 		assert.Equal(t, ct, "application/x-www-form-urlencoded")
+	})
+
+	t.Run("should return error on BodyTypeURLEncoded with invalid JSON", func(t *testing.T) {
+		body := "not a valid JSON"
+		contentType := BodyTypeURLEncoded
+
+		r, ct, err := EncodeBody(body, contentType)
+
+		assert.Error(t, err)
+		assert.Nil(t, r)
+		assert.Empty(t, ct)
+		assert.ErrorContains(t, err, "invalid JSON for url-encoded")
 	})
 
 	t.Run("should return a multipart form on BodyTypeFormData", func(t *testing.T) {
@@ -92,5 +109,17 @@ func TestEncodeBody(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, r)
 		assert.Contains(t, ct, "multipart/form-data;")
+	})
+
+	t.Run("should return error on BodyTypeFormData with invalid JSON", func(t *testing.T) {
+		body := "not a valid JSON"
+		contentType := BodyTypeFormData
+
+		r, ct, err := EncodeBody(body, contentType)
+
+		assert.Error(t, err)
+		assert.Nil(t, r)
+		assert.Empty(t, ct)
+		assert.ErrorContains(t, err, "invalid JSON for form-data")
 	})
 }
