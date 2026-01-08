@@ -60,7 +60,7 @@ func New() (*Storage, error) {
 	}
 
 	s := &Storage{
-		path: filepath.Join(configDir, "requests.json"),
+		path: filepath.Join(configDir, requestsFile),
 		store: &Store{
 			Collections: []*Collection{},
 			Requests:    []*Request{},

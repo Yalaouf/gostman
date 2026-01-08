@@ -95,7 +95,7 @@ func (s *Storage) UpdateCollection(id, name string) (*Collection, error) {
 		return nil, err
 	}
 
-	return s.store.Collections[i], nil
+	return s.store.Collections[i].Copy(), nil
 }
 
 func (s *Storage) DeleteCollection(id string, force bool) error {
@@ -148,7 +148,7 @@ func (s *Storage) ListRequestsByCollection(collectionID string) []*Request {
 
 	for _, req := range s.store.Requests {
 		if req.CollectionID == collectionID {
-			result = append(result, req)
+			result = append(result, req.Copy())
 		}
 	}
 

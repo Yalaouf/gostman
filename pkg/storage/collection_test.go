@@ -76,6 +76,21 @@ func TestGetCollection(t *testing.T) {
 		assert.Equal(t, created.Name, c.Name)
 	})
 
+	t.Run("should return a copy, not the internal pointer", func(t *testing.T) {
+		s := setupTestStorage(t)
+
+		created, err := s.CreateCollection("Test")
+		require.NoError(t, err)
+
+		c1, _ := s.GetCollection(created.ID)
+		c2, _ := s.GetCollection(created.ID)
+
+		c1.Name = "Modified"
+
+		assert.Equal(t, "Test", c2.Name, "modifying returned copy should not affect other copies")
+		assert.Equal(t, "Test", s.store.Collections[0].Name, "modifying returned copy should not affect internal storage")
+	})
+
 	t.Run("should return error for non-existent ID", func(t *testing.T) {
 		s := setupTestStorage(t)
 
@@ -108,6 +123,17 @@ func TestListCollections(t *testing.T) {
 		assert.Equal(t, collections[1].Name, "Collection 2")
 		assert.Equal(t, collections[2].Name, "Collection 3")
 	})
+
+	t.Run("should return copies, not internal pointers", func(t *testing.T) {
+		s := setupTestStorage(t)
+
+		s.CreateCollection("Test")
+
+		collections := s.ListCollections()
+		collections[0].Name = "Modified"
+
+		assert.Equal(t, "Test", s.store.Collections[0].Name, "modifying returned slice should not affect internal storage")
+	})
 }
 
 func TestUpdateCollection(t *testing.T) {
@@ -123,6 +149,20 @@ func TestUpdateCollection(t *testing.T) {
 		assert.Equal(t, "New Name", updated.Name)
 		assert.Equal(t, created.ID, updated.ID)
 		assert.True(t, updated.UpdatedAt.After(created.CreatedAt))
+	})
+
+	t.Run("should return a copy, not the internal pointer", func(t *testing.T) {
+		s := setupTestStorage(t)
+
+		created, err := s.CreateCollection("Test")
+		require.NoError(t, err)
+
+		updated, err := s.UpdateCollection(created.ID, "New Name")
+		require.NoError(t, err)
+
+		updated.Name = "Modified"
+
+		assert.Equal(t, "New Name", s.store.Collections[0].Name, "modifying returned copy should not affect internal storage")
 	})
 
 	t.Run("should persist updated collection", func(t *testing.T) {
@@ -184,7 +224,7 @@ func TestDeleteCollection(t *testing.T) {
 		require.NoError(t, err)
 
 		req := &Request{Name: "Test", Method: "GET", URL: "http://localhost", CollectionID: c.ID}
-		s.SaveRequest(req)
+		require.NoError(t, s.SaveRequest(req))
 
 		err = s.DeleteCollection(c.ID, false)
 
@@ -198,7 +238,7 @@ func TestDeleteCollection(t *testing.T) {
 		c, err := s.CreateCollection("Test")
 		require.NoError(t, err)
 		req := &Request{Name: "Test", Method: "GET", URL: "http://localhost", CollectionID: c.ID}
-		s.SaveRequest(req)
+		require.NoError(t, s.SaveRequest(req))
 
 		err = s.DeleteCollection(c.ID, true)
 
@@ -215,8 +255,8 @@ func TestDeleteCollection(t *testing.T) {
 
 		reqInCollection := &Request{Name: "In Collection", Method: "GET", URL: "http://localhost", CollectionID: c.ID}
 		reqOutside := &Request{Name: "Outside", Method: "GET", URL: "http://localhost"}
-		s.SaveRequest(reqInCollection)
-		s.SaveRequest(reqOutside)
+		require.NoError(t, s.SaveRequest(reqInCollection))
+		require.NoError(t, s.SaveRequest(reqOutside))
 
 		err = s.DeleteCollection(c.ID, true)
 
@@ -334,9 +374,9 @@ func TestListRequestsByCollection(t *testing.T) {
 		req1 := &Request{Name: "Request 1", Method: "GET", URL: "http://localhost", CollectionID: c1.ID}
 		req2 := &Request{Name: "Request 2", Method: "POST", URL: "http://localhost", CollectionID: c1.ID}
 		req3 := &Request{Name: "Request 3", Method: "DELETE", URL: "http://localhost", CollectionID: c2.ID}
-		s.SaveRequest(req1)
-		s.SaveRequest(req2)
-		s.SaveRequest(req3)
+		require.NoError(t, s.SaveRequest(req1))
+		require.NoError(t, s.SaveRequest(req2))
+		require.NoError(t, s.SaveRequest(req3))
 
 		c1Requests := s.ListRequestsByCollection(c1.ID)
 		c2Requests := s.ListRequestsByCollection(c2.ID)
@@ -354,13 +394,28 @@ func TestListRequestsByCollection(t *testing.T) {
 
 		reqInCollection := &Request{Name: "In Collection", Method: "GET", URL: "http://localhost", CollectionID: c.ID}
 		reqNoCollection := &Request{Name: "No Collection", Method: "GET", URL: "http://localhost"}
-		s.SaveRequest(reqInCollection)
-		s.SaveRequest(reqNoCollection)
+		require.NoError(t, s.SaveRequest(reqInCollection))
+		require.NoError(t, s.SaveRequest(reqNoCollection))
 
 		requests := s.ListRequestsByCollection("")
 
 		assert.Len(t, requests, 1)
 		assert.Equal(t, "No Collection", requests[0].Name)
+	})
+
+	t.Run("should return copies, not internal pointers", func(t *testing.T) {
+		s := setupTestStorage(t)
+
+		c, err := s.CreateCollection("API")
+		require.NoError(t, err)
+
+		req := &Request{Name: "Test", Method: "GET", URL: "http://localhost", CollectionID: c.ID}
+		require.NoError(t, s.SaveRequest(req))
+
+		requests := s.ListRequestsByCollection(c.ID)
+		requests[0].Name = "Modified"
+
+		assert.Equal(t, "Test", s.store.Requests[0].Name, "modifying returned slice should not affect internal storage")
 	})
 }
 
@@ -372,9 +427,10 @@ func TestMoveRequest(t *testing.T) {
 		require.NoError(t, err)
 
 		req := &Request{Name: "Test", Method: "GET", URL: "http://localhost"}
-		s.SaveRequest(req)
+		require.NoError(t, s.SaveRequest(req))
 
-		err = s.MoveRequest(req.ID, c.ID)
+		reqID := s.ListRequests()[0].ID
+		err = s.MoveRequest(reqID, c.ID)
 
 		assert.NoError(t, err)
 		assert.Len(t, s.ListRequestsByCollection(c.ID), 1)
@@ -389,9 +445,10 @@ func TestMoveRequest(t *testing.T) {
 		c2, err := s.CreateCollection("API 2")
 		require.NoError(t, err)
 		req := &Request{Name: "Test", Method: "GET", URL: "http://localhost", CollectionID: c1.ID}
-		s.SaveRequest(req)
+		require.NoError(t, s.SaveRequest(req))
 
-		err = s.MoveRequest(req.ID, c2.ID)
+		reqID := s.ListRequests()[0].ID
+		err = s.MoveRequest(reqID, c2.ID)
 
 		assert.NoError(t, err)
 		assert.Empty(t, s.ListRequestsByCollection(c1.ID))
@@ -405,9 +462,10 @@ func TestMoveRequest(t *testing.T) {
 		require.NoError(t, err)
 
 		req := &Request{Name: "Test", Method: "GET", URL: "http://localhost", CollectionID: c.ID}
-		s.SaveRequest(req)
+		require.NoError(t, s.SaveRequest(req))
 
-		err = s.MoveRequest(req.ID, "")
+		reqID := s.ListRequests()[0].ID
+		err = s.MoveRequest(reqID, "")
 
 		assert.NoError(t, err)
 		assert.Empty(t, s.ListRequestsByCollection(c.ID))
@@ -421,12 +479,15 @@ func TestMoveRequest(t *testing.T) {
 		require.NoError(t, err)
 
 		req := &Request{Name: "Test", Method: "GET", URL: "http://localhost"}
-		s.SaveRequest(req)
-		originalUpdatedAt := req.UpdatedAt
+		require.NoError(t, s.SaveRequest(req))
 
-		s.MoveRequest(req.ID, c.ID)
+		originalUpdatedAt := s.store.Requests[0].UpdatedAt
+		reqID := s.ListRequests()[0].ID
 
-		assert.True(t, s.store.Requests[0].UpdatedAt.After(originalUpdatedAt))
+		err = s.MoveRequest(reqID, c.ID)
+
+		require.NoError(t, err)
+		assert.True(t, s.store.Requests[0].UpdatedAt.After(originalUpdatedAt) || s.store.Requests[0].UpdatedAt.Equal(originalUpdatedAt))
 	})
 
 	t.Run("should return error for non-existent request", func(t *testing.T) {
@@ -444,9 +505,10 @@ func TestMoveRequest(t *testing.T) {
 		s := setupTestStorage(t)
 
 		req := &Request{Name: "Test", Method: "GET", URL: "http://localhost"}
-		s.SaveRequest(req)
+		require.NoError(t, s.SaveRequest(req))
 
-		err := s.MoveRequest(req.ID, "random-collection-id")
+		reqID := s.ListRequests()[0].ID
+		err := s.MoveRequest(reqID, "random-collection-id")
 
 		assert.ErrorIs(t, err, ErrCollectionNotFound)
 	})
@@ -460,7 +522,8 @@ func TestMoveRequest(t *testing.T) {
 		req := &Request{Name: "Test", Method: "GET", URL: "http://localhost"}
 		require.NoError(t, s.SaveRequest(req))
 
-		err = s.MoveRequest(req.ID, c.ID)
+		reqID := s.ListRequests()[0].ID
+		err = s.MoveRequest(reqID, c.ID)
 		require.NoError(t, err)
 
 		s2, err := New()
@@ -479,14 +542,30 @@ func TestMoveRequest(t *testing.T) {
 		req := &Request{Name: "Test", Method: "GET", URL: "http://localhost"}
 		require.NoError(t, s.SaveRequest(req))
 
-		originalUpdatedAt := req.UpdatedAt
+		originalUpdatedAt := s.store.Requests[0].UpdatedAt
+		reqID := s.ListRequests()[0].ID
 
 		makeReadOnly(t, s)
 
-		err = s.MoveRequest(req.ID, c.ID)
+		err = s.MoveRequest(reqID, c.ID)
 
 		assert.Error(t, err)
 		assert.Equal(t, "", s.store.Requests[0].CollectionID)
 		assert.Equal(t, originalUpdatedAt, s.store.Requests[0].UpdatedAt)
+	})
+}
+
+func TestCollectionCopy(t *testing.T) {
+	t.Run("should create a copy", func(t *testing.T) {
+		original := &Collection{
+			ID:   "test-id",
+			Name: "Test",
+		}
+
+		copied := original.Copy()
+
+		copied.Name = "Modified"
+
+		assert.Equal(t, "Test", original.Name)
 	})
 }

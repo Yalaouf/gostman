@@ -10,7 +10,11 @@ var (
 	ErrCollectionNotFound = errors.New("collection not found")
 	ErrCollectionNotEmpty = errors.New("collection is not empty")
 	ErrRequestNotFound    = errors.New("request not found")
+	ErrEmptyURL           = errors.New("request URL is empty")
+	ErrEmptyName          = errors.New("request name is empty")
 )
+
+var requestsFile = "requests.json"
 
 type Collection struct {
 	ID        string    `json:"id"`

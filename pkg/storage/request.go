@@ -43,20 +43,25 @@ func (s *Storage) SaveRequest(req *Request) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
+	if req.URL == "" {
+		return ErrEmptyURL
+	}
+
+	if req.Name == "" {
+		return ErrEmptyName
+	}
+
+	newRequest := req.Copy()
 	now := time.Now()
 
 	if req.ID == "" {
-		req.ID = uuid.NewString()
-		req.CreatedAt = now
-		req.UpdatedAt = now
-		s.store.Requests = append(s.store.Requests, req)
+		newRequest.ID = uuid.NewString()
+		newRequest.CreatedAt = now
+		newRequest.UpdatedAt = now
+		s.store.Requests = append(s.store.Requests, newRequest)
 
 		if err := s.save(); err != nil {
 			s.store.Requests = s.store.Requests[:len(s.store.Requests)-1]
-			req.ID = ""
-			req.CreatedAt = time.Time{}
-			req.UpdatedAt = time.Time{}
-
 			return err
 		}
 
@@ -69,9 +74,9 @@ func (s *Storage) SaveRequest(req *Request) error {
 	}
 
 	oldRequest := s.store.Requests[i]
-	req.UpdatedAt = now
-	req.CreatedAt = s.store.Requests[i].CreatedAt
-	s.store.Requests[i] = req
+	newRequest.UpdatedAt = now
+	newRequest.CreatedAt = s.store.Requests[i].CreatedAt
+	s.store.Requests[i] = newRequest
 
 	if err := s.save(); err != nil {
 		s.store.Requests[i] = oldRequest
