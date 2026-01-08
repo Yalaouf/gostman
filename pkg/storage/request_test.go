@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,6 +17,18 @@ func setupTestStorage(t *testing.T) *Storage {
 	require.NoError(t, err)
 
 	return s
+}
+
+func makeReadOnly(t *testing.T, s *Storage) {
+	os.Remove(s.path)
+
+	dir := filepath.Dir(s.path)
+	err := os.Chmod(dir, 0555)
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		os.Chmod(dir, 0755)
+	})
 }
 
 func TestStorageFindIndex(t *testing.T) {
@@ -87,6 +101,56 @@ func TestStorageSaveRequest(t *testing.T) {
 
 		assert.ErrorIs(t, err, ErrRequestNotFound)
 	})
+
+	t.Run("should rollback on save failure when creating", func(t *testing.T) {
+		s := setupTestStorage(t)
+		makeReadOnly(t, s)
+
+		req := &Request{
+			Name:   "Test",
+			Method: "GET",
+			URL:    "http://localhost",
+		}
+
+		err := s.SaveRequest(req)
+
+		assert.Error(t, err)
+		assert.Empty(t, req.ID)
+		assert.True(t, req.CreatedAt.IsZero())
+		assert.True(t, req.UpdatedAt.IsZero())
+		assert.Empty(t, s.store.Requests)
+	})
+
+	t.Run("should rollback on save failure when updating", func(t *testing.T) {
+		s := setupTestStorage(t)
+
+		req := &Request{
+			Name:   "Original",
+			Method: "GET",
+			URL:    "http://localhost",
+		}
+		require.NoError(t, s.SaveRequest(req))
+
+		originalID := req.ID
+		originalCreatedAt := req.CreatedAt
+		originalUpdatedAt := req.UpdatedAt
+
+		makeReadOnly(t, s)
+
+		updatedReq := &Request{
+			ID:     originalID,
+			Name:   "Updated",
+			Method: "GET",
+			URL:    "http://localhost",
+		}
+		err := s.SaveRequest(updatedReq)
+
+		assert.Error(t, err)
+		assert.Equal(t, "Original", s.store.Requests[0].Name)
+		assert.Equal(t, originalID, s.store.Requests[0].ID)
+		assert.Equal(t, originalCreatedAt, s.store.Requests[0].CreatedAt)
+		assert.Equal(t, originalUpdatedAt, s.store.Requests[0].UpdatedAt)
+	})
 }
 
 func TestStorageGetRequest(t *testing.T) {
@@ -108,6 +172,31 @@ func TestStorageGetRequest(t *testing.T) {
 		_, err := s.GetRequest("randomID")
 
 		assert.ErrorIs(t, err, ErrRequestNotFound)
+	})
+}
+
+func TestListRequests(t *testing.T) {
+	t.Run("should return empty slice when no requests", func(t *testing.T) {
+		s := setupTestStorage(t)
+
+		requests := s.ListRequests()
+
+		assert.Empty(t, requests)
+	})
+
+	t.Run("should return all requests", func(t *testing.T) {
+		s := setupTestStorage(t)
+
+		req1 := &Request{Name: "Request 1", Method: "GET", URL: "http://localhost"}
+		req2 := &Request{Name: "Request 2", Method: "POST", URL: "http://localhost"}
+		require.NoError(t, s.SaveRequest(req1))
+		require.NoError(t, s.SaveRequest(req2))
+
+		requests := s.ListRequests()
+
+		assert.Len(t, requests, 2)
+		assert.Equal(t, "Request 1", requests[0].Name)
+		assert.Equal(t, "Request 2", requests[1].Name)
 	})
 }
 
@@ -184,5 +273,41 @@ func TestStorageDeleteRequest(t *testing.T) {
 		err := s.DeleteRequest("randomID")
 
 		assert.ErrorIs(t, err, ErrRequestNotFound)
+	})
+
+	t.Run("should persist deletion to storage", func(t *testing.T) {
+		s := setupTestStorage(t)
+
+		req := &Request{Name: "Test", Method: "GET", URL: "http://localhost"}
+		require.NoError(t, s.SaveRequest(req))
+		reqID := req.ID
+
+		err := s.DeleteRequest(reqID)
+		require.NoError(t, err)
+
+		s2, err := New()
+		require.NoError(t, err)
+
+		assert.Empty(t, s2.ListRequests())
+		_, err = s2.GetRequest(reqID)
+		assert.ErrorIs(t, err, ErrRequestNotFound)
+	})
+
+	t.Run("should rollback on save failure", func(t *testing.T) {
+		s := setupTestStorage(t)
+
+		req1 := &Request{Name: "Request 1", Method: "GET", URL: "http://localhost"}
+		req2 := &Request{Name: "Request 2", Method: "POST", URL: "http://localhost"}
+		require.NoError(t, s.SaveRequest(req1))
+		require.NoError(t, s.SaveRequest(req2))
+
+		makeReadOnly(t, s)
+
+		err := s.DeleteRequest(req1.ID)
+
+		assert.Error(t, err)
+		assert.Len(t, s.store.Requests, 2)
+		assert.Equal(t, "Request 1", s.store.Requests[0].Name)
+		assert.Equal(t, "Request 2", s.store.Requests[1].Name)
 	})
 }

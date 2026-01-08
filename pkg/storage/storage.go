@@ -21,7 +21,7 @@ func (s *Storage) save() error {
 		return err
 	}
 
-	return os.WriteFile(s.path, data, 0644)
+	return os.WriteFile(s.path, data, 0600)
 }
 
 func New() (*Storage, error) {

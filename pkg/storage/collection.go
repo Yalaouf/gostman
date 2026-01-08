@@ -17,6 +17,9 @@ func (s *Storage) findCollectionIndex(id string) int {
 }
 
 func (s *Storage) CreateCollection(name string) (*Collection, error) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
 	now := time.Now()
 
 	collection := &Collection{
@@ -37,6 +40,9 @@ func (s *Storage) CreateCollection(name string) (*Collection, error) {
 }
 
 func (s *Storage) GetCollection(id string) (*Collection, error) {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+
 	for _, c := range s.store.Collections {
 		if c.ID == id {
 			return c, nil
@@ -47,19 +53,30 @@ func (s *Storage) GetCollection(id string) (*Collection, error) {
 }
 
 func (s *Storage) ListCollections() []*Collection {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+
 	return s.store.Collections
 }
 
 func (s *Storage) UpdateCollection(id, name string) (*Collection, error) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
 	i := s.findCollectionIndex(id)
 	if i == -1 {
 		return nil, ErrCollectionNotFound
 	}
 
+	oldName := s.store.Collections[i].Name
+	oldUpdatedAt := s.store.Collections[i].UpdatedAt
+
 	s.store.Collections[i].Name = name
 	s.store.Collections[i].UpdatedAt = time.Now()
 
 	if err := s.save(); err != nil {
+		s.store.Collections[i].Name = oldName
+		s.store.Collections[i].UpdatedAt = oldUpdatedAt
 		return nil, err
 	}
 
@@ -67,6 +84,9 @@ func (s *Storage) UpdateCollection(id, name string) (*Collection, error) {
 }
 
 func (s *Storage) DeleteCollection(id string, force bool) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
 	i := s.findCollectionIndex(id)
 	if i == -1 {
 		return ErrCollectionNotFound
@@ -78,17 +98,37 @@ func (s *Storage) DeleteCollection(id string, force bool) error {
 				return ErrCollectionNotEmpty
 			}
 		}
-	} else {
+	}
+
+	deletedCollection := s.store.Collections[i]
+	var originalRequests []*Request
+
+	if force {
+		originalRequests = s.store.Requests
 		s.store.Requests = filterRequests(s.store.Requests, func(r *Request) bool {
 			return r.CollectionID != id
 		})
 	}
 
 	s.store.Collections = append(s.store.Collections[:i], s.store.Collections[i+1:]...)
-	return s.save()
+
+	if err := s.save(); err != nil {
+		s.store.Collections = insertAt(s.store.Collections, i, deletedCollection)
+
+		if force {
+			s.store.Requests = originalRequests
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 func (s *Storage) ListRequestsByCollection(collectionID string) []*Request {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+
 	var result []*Request
 
 	for _, req := range s.store.Requests {
@@ -101,6 +141,9 @@ func (s *Storage) ListRequestsByCollection(collectionID string) []*Request {
 }
 
 func (s *Storage) MoveRequest(requestID, collectionID string) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
 	requestIndex := s.findRequestIndex(requestID)
 	if requestIndex == -1 {
 		return ErrRequestNotFound
@@ -110,8 +153,17 @@ func (s *Storage) MoveRequest(requestID, collectionID string) error {
 		return ErrCollectionNotFound
 	}
 
+	oldCollectionID := s.store.Requests[requestIndex].CollectionID
+	oldUpdatedAt := s.store.Requests[requestIndex].UpdatedAt
+
 	s.store.Requests[requestIndex].CollectionID = collectionID
 	s.store.Requests[requestIndex].UpdatedAt = time.Now()
 
-	return s.save()
+	if err := s.save(); err != nil {
+		s.store.Requests[requestIndex].CollectionID = oldCollectionID
+		s.store.Requests[requestIndex].UpdatedAt = oldUpdatedAt
+		return err
+	}
+
+	return nil
 }

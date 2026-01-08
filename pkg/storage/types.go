@@ -2,6 +2,7 @@ package storage
 
 import (
 	"errors"
+	"sync"
 	"time"
 )
 
@@ -9,7 +10,6 @@ var (
 	ErrCollectionNotFound = errors.New("collection not found")
 	ErrCollectionNotEmpty = errors.New("collection is not empty")
 	ErrRequestNotFound    = errors.New("request not found")
-	ErrBadInput           = errors.New("input(s) is(are) missing")
 )
 
 type Collection struct {
@@ -39,6 +39,7 @@ type Store struct {
 }
 
 type Storage struct {
+	mutex sync.RWMutex
 	path  string
 	store *Store
 }

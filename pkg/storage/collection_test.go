@@ -50,6 +50,17 @@ func TestCreateCollection(t *testing.T) {
 		assert.Len(t, s2.ListCollections(), 1)
 		assert.Equal(t, c.ID, s2.ListCollections()[0].ID)
 	})
+
+	t.Run("should rollback on save failure", func(t *testing.T) {
+		s := setupTestStorage(t)
+		makeReadOnly(t, s)
+
+		c, err := s.CreateCollection("My API")
+
+		assert.Error(t, err)
+		assert.Nil(t, c)
+		assert.Empty(t, s.store.Collections)
+	})
 }
 
 func TestGetCollection(t *testing.T) {
@@ -134,6 +145,23 @@ func TestUpdateCollection(t *testing.T) {
 
 		assert.ErrorIs(t, err, ErrCollectionNotFound)
 	})
+
+	t.Run("should rollback on save failure", func(t *testing.T) {
+		s := setupTestStorage(t)
+
+		created, err := s.CreateCollection("Original Name")
+		require.NoError(t, err)
+
+		originalUpdatedAt := created.UpdatedAt
+
+		makeReadOnly(t, s)
+
+		_, err = s.UpdateCollection(created.ID, "New Name")
+
+		assert.Error(t, err)
+		assert.Equal(t, "Original Name", s.store.Collections[0].Name)
+		assert.Equal(t, originalUpdatedAt, s.store.Collections[0].UpdatedAt)
+	})
 }
 
 func TestDeleteCollection(t *testing.T) {
@@ -203,6 +231,83 @@ func TestDeleteCollection(t *testing.T) {
 		err := s.DeleteCollection("random-id", false)
 
 		assert.ErrorIs(t, err, ErrCollectionNotFound)
+	})
+
+	t.Run("should persist deletion to storage", func(t *testing.T) {
+		s := setupTestStorage(t)
+
+		c, err := s.CreateCollection("Test")
+		require.NoError(t, err)
+		collectionID := c.ID
+
+		err = s.DeleteCollection(collectionID, false)
+		require.NoError(t, err)
+
+		s2, err := New()
+		require.NoError(t, err)
+
+		assert.Empty(t, s2.ListCollections())
+		_, err = s2.GetCollection(collectionID)
+		assert.ErrorIs(t, err, ErrCollectionNotFound)
+	})
+
+	t.Run("should persist force deletion with requests to storage", func(t *testing.T) {
+		s := setupTestStorage(t)
+
+		c, err := s.CreateCollection("Test")
+		require.NoError(t, err)
+
+		reqInCollection := &Request{Name: "In Collection", Method: "GET", URL: "http://localhost", CollectionID: c.ID}
+		reqOutside := &Request{Name: "Outside", Method: "GET", URL: "http://localhost"}
+		require.NoError(t, s.SaveRequest(reqInCollection))
+		require.NoError(t, s.SaveRequest(reqOutside))
+
+		err = s.DeleteCollection(c.ID, true)
+		require.NoError(t, err)
+
+		s2, err := New()
+		require.NoError(t, err)
+
+		assert.Empty(t, s2.ListCollections())
+		assert.Len(t, s2.ListRequests(), 1)
+		assert.Equal(t, "Outside", s2.ListRequests()[0].Name)
+	})
+
+	t.Run("should rollback on save failure", func(t *testing.T) {
+		s := setupTestStorage(t)
+
+		c, err := s.CreateCollection("Test")
+		require.NoError(t, err)
+
+		makeReadOnly(t, s)
+
+		err = s.DeleteCollection(c.ID, false)
+
+		assert.Error(t, err)
+		assert.Len(t, s.store.Collections, 1)
+		assert.Equal(t, "Test", s.store.Collections[0].Name)
+	})
+
+	t.Run("should rollback force deletion on save failure", func(t *testing.T) {
+		s := setupTestStorage(t)
+
+		c, err := s.CreateCollection("Test")
+		require.NoError(t, err)
+
+		reqInCollection := &Request{Name: "In Collection", Method: "GET", URL: "http://localhost", CollectionID: c.ID}
+		reqOutside := &Request{Name: "Outside", Method: "GET", URL: "http://localhost"}
+		require.NoError(t, s.SaveRequest(reqInCollection))
+		require.NoError(t, s.SaveRequest(reqOutside))
+
+		makeReadOnly(t, s)
+
+		err = s.DeleteCollection(c.ID, true)
+
+		assert.Error(t, err)
+		assert.Len(t, s.store.Collections, 1)
+		assert.Len(t, s.store.Requests, 2)
+		assert.Equal(t, "In Collection", s.store.Requests[0].Name)
+		assert.Equal(t, "Outside", s.store.Requests[1].Name)
 	})
 }
 
@@ -344,5 +449,44 @@ func TestMoveRequest(t *testing.T) {
 		err := s.MoveRequest(req.ID, "random-collection-id")
 
 		assert.ErrorIs(t, err, ErrCollectionNotFound)
+	})
+
+	t.Run("should persist move to storage", func(t *testing.T) {
+		s := setupTestStorage(t)
+
+		c, err := s.CreateCollection("API")
+		require.NoError(t, err)
+
+		req := &Request{Name: "Test", Method: "GET", URL: "http://localhost"}
+		require.NoError(t, s.SaveRequest(req))
+
+		err = s.MoveRequest(req.ID, c.ID)
+		require.NoError(t, err)
+
+		s2, err := New()
+		require.NoError(t, err)
+
+		assert.Len(t, s2.ListRequestsByCollection(c.ID), 1)
+		assert.Equal(t, c.ID, s2.ListRequests()[0].CollectionID)
+	})
+
+	t.Run("should rollback on save failure", func(t *testing.T) {
+		s := setupTestStorage(t)
+
+		c, err := s.CreateCollection("API")
+		require.NoError(t, err)
+
+		req := &Request{Name: "Test", Method: "GET", URL: "http://localhost"}
+		require.NoError(t, s.SaveRequest(req))
+
+		originalUpdatedAt := req.UpdatedAt
+
+		makeReadOnly(t, s)
+
+		err = s.MoveRequest(req.ID, c.ID)
+
+		assert.Error(t, err)
+		assert.Equal(t, "", s.store.Requests[0].CollectionID)
+		assert.Equal(t, originalUpdatedAt, s.store.Requests[0].UpdatedAt)
 	})
 }
