@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"maps"
+	"slices"
 	"time"
 
 	"github.com/google/uuid"
@@ -14,6 +16,27 @@ func (s *Storage) findRequestIndex(id string) int {
 	}
 
 	return -1
+}
+
+func (r *Request) Copy() *Request {
+	var headers map[string]string
+	if r.Headers != nil {
+		headers = make(map[string]string, len(r.Headers))
+		maps.Copy(headers, r.Headers)
+	}
+
+	return &Request{
+		ID:           r.ID,
+		CollectionID: r.CollectionID,
+		Name:         r.Name,
+		Method:       r.Method,
+		URL:          r.URL,
+		Headers:      headers,
+		Body:         r.Body,
+		BodyType:     r.BodyType,
+		CreatedAt:    r.CreatedAt,
+		UpdatedAt:    r.UpdatedAt,
+	}
 }
 
 func (s *Storage) SaveRequest(req *Request) error {
@@ -64,7 +87,7 @@ func (s *Storage) GetRequest(id string) (*Request, error) {
 
 	for _, req := range s.store.Requests {
 		if req.ID == id {
-			return req, nil
+			return req.Copy(), nil
 		}
 	}
 
@@ -75,7 +98,12 @@ func (s *Storage) ListRequests() []*Request {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
-	return s.store.Requests
+	result := make([]*Request, len(s.store.Requests))
+	for i, r := range s.store.Requests {
+		result[i] = r.Copy()
+	}
+
+	return result
 }
 
 func (s *Storage) DeleteRequest(id string) error {
@@ -91,7 +119,7 @@ func (s *Storage) DeleteRequest(id string) error {
 	s.store.Requests = append(s.store.Requests[:i], s.store.Requests[i+1:]...)
 
 	if err := s.save(); err != nil {
-		s.store.Requests = insertAt(s.store.Requests, i, deleted)
+		s.store.Requests = slices.Insert(s.store.Requests, i, deleted)
 		return err
 	}
 	return nil

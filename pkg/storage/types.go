@@ -33,7 +33,6 @@ type Request struct {
 }
 
 type Store struct {
-	Version     int           `json:"version"`
 	Collections []*Collection `json:"collections"`
 	Requests    []*Request    `json:"requests"`
 }

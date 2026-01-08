@@ -28,9 +28,3 @@ func filterRequests(requests []*Request, keep func(*Request) bool) []*Request {
 
 	return result
 }
-
-func insertAt[T any](slice []T, index int, item T) []T {
-	slice = append(slice[:index], append([]T{item}, slice[index:]...)...)
-
-	return slice
-}

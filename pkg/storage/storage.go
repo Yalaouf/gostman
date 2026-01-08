@@ -21,7 +21,32 @@ func (s *Storage) save() error {
 		return err
 	}
 
-	return os.WriteFile(s.path, data, 0600)
+	tmpFile := s.path + ".tmp"
+
+	f, err := os.OpenFile(tmpFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	if err != nil {
+		return err
+	}
+
+	_, err = f.Write(data)
+	if err != nil {
+		os.Remove(tmpFile)
+		return err
+	}
+
+	err = f.Sync()
+	if err != nil {
+		os.Remove(tmpFile)
+		return err
+	}
+
+	err = f.Close()
+	if err != nil {
+		os.Remove(tmpFile)
+		return err
+	}
+
+	return os.Rename(tmpFile, s.path)
 }
 
 func New() (*Storage, error) {
@@ -37,7 +62,6 @@ func New() (*Storage, error) {
 	s := &Storage{
 		path: filepath.Join(configDir, "requests.json"),
 		store: &Store{
-			Version:     1,
 			Collections: []*Collection{},
 			Requests:    []*Request{},
 		},

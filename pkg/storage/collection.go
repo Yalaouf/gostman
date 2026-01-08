@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"slices"
 	"time"
 
 	"github.com/google/uuid"
@@ -14,6 +15,15 @@ func (s *Storage) findCollectionIndex(id string) int {
 	}
 
 	return -1
+}
+
+func (c *Collection) Copy() *Collection {
+	return &Collection{
+		ID:        c.ID,
+		Name:      c.Name,
+		CreatedAt: c.CreatedAt,
+		UpdatedAt: c.UpdatedAt,
+	}
 }
 
 func (s *Storage) CreateCollection(name string) (*Collection, error) {
@@ -45,7 +55,7 @@ func (s *Storage) GetCollection(id string) (*Collection, error) {
 
 	for _, c := range s.store.Collections {
 		if c.ID == id {
-			return c, nil
+			return c.Copy(), nil
 		}
 	}
 
@@ -56,7 +66,12 @@ func (s *Storage) ListCollections() []*Collection {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
-	return s.store.Collections
+	result := make([]*Collection, len(s.store.Collections))
+	for i, c := range s.store.Collections {
+		result[i] = c.Copy()
+	}
+
+	return result
 }
 
 func (s *Storage) UpdateCollection(id, name string) (*Collection, error) {
@@ -113,7 +128,7 @@ func (s *Storage) DeleteCollection(id string, force bool) error {
 	s.store.Collections = append(s.store.Collections[:i], s.store.Collections[i+1:]...)
 
 	if err := s.save(); err != nil {
-		s.store.Collections = insertAt(s.store.Collections, i, deletedCollection)
+		s.store.Collections = slices.Insert(s.store.Collections, i, deletedCollection)
 
 		if force {
 			s.store.Requests = originalRequests
