@@ -2,7 +2,7 @@
 An API tester written in Go
 
 <p align="center">
-  <img src="https://github.com/Yalaouf/gostman/blob/main/logo.png" alt="Gostman Logo"/>
+  <img width="500" height="500" src="https://github.com/Yalaouf/gostman/blob/main/logo.png" alt="Gostman Logo"/>
 </p>
 
 ## Disclaimer
