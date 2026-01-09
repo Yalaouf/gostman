@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"github.com/Yalaouf/gostman/pkg/storage"
+	"github.com/Yalaouf/gostman/pkg/tui/components/body"
 	"github.com/Yalaouf/gostman/pkg/tui/types"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -19,6 +21,10 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 		return m, nil
+	}
+
+	if m.savePopup.Visible() {
+		return m.handleSavePopup(msg)
 	}
 
 	if key == types.KeyAltEnter {
@@ -83,6 +89,8 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			return m.handleFocusChange(types.FocusResult)
 		}
 		return m, nil
+	case types.KeyS:
+		return m, m.savePopup.Show()
 	}
 
 	switch key {
@@ -211,5 +219,52 @@ func (m Model) handleBodyInput(msg tea.Msg) (Model, tea.Cmd) {
 
 func (m Model) handleHeadersInput(msg tea.Msg) (Model, tea.Cmd) {
 	cmd := m.headers.Update(msg)
+	return m, cmd
+}
+
+func (m Model) handleSavePopup(msg tea.KeyMsg) (Model, tea.Cmd) {
+	key := msg.String()
+
+	switch key {
+	case types.KeyEscape:
+		m.savePopup.Hide()
+		return m, nil
+
+	case types.KeyEnter:
+		name := m.savePopup.Value()
+		if name == "" {
+			m.savePopup.SetError("Name is required")
+			return m, nil
+		}
+
+		req := &storage.Request{
+			Name:    name,
+			Method:  string(m.method.Selected()),
+			URL:     m.url.Value(),
+			Headers: m.headers.EnabledHeaders(),
+			Body:    m.body.Value(),
+		}
+
+		switch m.body.BodyType {
+		case body.TypeJSON:
+			req.BodyType = "json"
+		case body.TypeFormData:
+			req.BodyType = "form-data"
+		case body.TypeURLEncoded:
+			req.BodyType = "urlencoded"
+		default:
+			req.BodyType = "none"
+		}
+
+		if err := m.storage.SaveRequest(req); err != nil {
+			m.savePopup.SetError(err.Error())
+			return m, nil
+		}
+
+		m.savePopup.Hide()
+		return m, nil
+	}
+
+	cmd := m.savePopup.Update(msg)
 	return m, cmd
 }

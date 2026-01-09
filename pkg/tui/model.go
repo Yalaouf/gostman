@@ -1,11 +1,15 @@
 package tui
 
 import (
+	"strings"
+
 	"github.com/Yalaouf/gostman/pkg/request"
+	"github.com/Yalaouf/gostman/pkg/storage"
 	"github.com/Yalaouf/gostman/pkg/tui/components/body"
 	"github.com/Yalaouf/gostman/pkg/tui/components/headers"
 	"github.com/Yalaouf/gostman/pkg/tui/components/method"
 	"github.com/Yalaouf/gostman/pkg/tui/components/response"
+	"github.com/Yalaouf/gostman/pkg/tui/components/savepopup"
 	"github.com/Yalaouf/gostman/pkg/tui/components/url"
 	"github.com/Yalaouf/gostman/pkg/tui/types"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -31,9 +35,12 @@ type Model struct {
 	headers  headers.Model
 	body     body.Model
 	response response.Model
+
+	storage   *storage.Storage
+	savePopup savepopup.Model
 }
 
-func New() Model {
+func New(s *storage.Storage) Model {
 	return Model{
 		focusSection: types.FocusURL,
 		method:       method.New(),
@@ -41,6 +48,8 @@ func New() Model {
 		headers:      headers.New(),
 		body:         body.New(),
 		response:     response.New(),
+		storage:      s,
+		savePopup:    savepopup.New(),
 	}
 }
 
@@ -88,7 +97,7 @@ func (m Model) handleWindowSize(msg tea.WindowSizeMsg) Model {
 
 	m.headers.SetSize(leftWidth, sectionHeight)
 	m.body.SetSize(leftWidth, sectionHeight)
-	m.response.SetSize(rightWidth, panelHeight)
+	m.response.SetSize(rightWidth, sectionHeight*2-3)
 	return m
 }
 
@@ -124,7 +133,7 @@ func (m *Model) syncContentType() {
 func (m Model) buildRequestModel() *request.Model {
 	req := request.NewModel()
 
-	req.SetURL(m.url.Value())
+	req.SetURL(strings.TrimSpace(m.url.Value()))
 	req.SetMethod(m.method.Selected())
 	req.SetBody(m.body.Value())
 	req.SetTimeout(request.DefaultTimeout)
@@ -141,7 +150,7 @@ func (m Model) buildRequestModel() *request.Model {
 	}
 
 	for key, value := range m.headers.EnabledHeaders() {
-		req.AddHeader(key, value)
+		req.AddHeader(strings.TrimSpace(key), strings.TrimSpace(value))
 	}
 
 	return req

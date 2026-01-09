@@ -8,7 +8,7 @@ import (
 	"github.com/Yalaouf/gostman/pkg/tui/utils"
 	"github.com/charmbracelet/bubbles/viewport"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/muesli/reflow/wordwrap"
+	"github.com/muesli/reflow/wrap"
 )
 
 type Model struct {
@@ -16,11 +16,12 @@ type Model struct {
 	Response request.Response
 	Focused  bool
 	Error    string
+	width    int
+	height   int
 }
 
 func New() Model {
 	vp := viewport.New(80, 10)
-	vp.Style = style.Viewport
 
 	return Model{
 		Viewport: vp,
@@ -33,8 +34,10 @@ func (m Model) HasResponse() bool {
 }
 
 func (m *Model) SetSize(width, height int) {
-	m.Viewport.Width = width
-	m.Viewport.Height = height
+	m.width = width
+	m.height = height
+	m.Viewport.Width = width - 6
+	m.Viewport.Height = height + 6
 }
 
 func (m *Model) SetResponse(res request.Response) {
@@ -47,7 +50,7 @@ func (m *Model) SetResponse(res request.Response) {
 	}
 
 	if m.Viewport.Width > 0 {
-		body = wordwrap.String(body, m.Viewport.Width-2)
+		body = wrap.String(body, m.Viewport.Width-2)
 	}
 
 	padding := "\n\n"
@@ -100,17 +103,16 @@ func (m Model) View(width int) string {
 		borderColor = style.ColorPurple
 	}
 
-	scrollbarStyle := lipgloss.NewStyle().Foreground(borderColor).MarginLeft(1)
-	scrollbar := scrollbarStyle.Render(RenderScrollbar(m.Viewport))
-
 	var content string
 	if m.Error != "" {
 		content = style.Error.Render("Error: " + m.Error)
 	} else if m.HasResponse() {
+		scrollbarStyle := lipgloss.NewStyle().Foreground(borderColor).MarginLeft(1)
+		scrollbar := scrollbarStyle.Render(RenderScrollbar(m.Viewport))
 		content = lipgloss.JoinHorizontal(lipgloss.Top, m.Viewport.View(), scrollbar)
 	} else {
 		content = style.Unselected.Render("No response yet. Press Alt+Enter to send a request.")
 	}
 
-	return style.SectionBox("Response", content, m.Focused, width)
+	return style.SectionBox("Response", content, m.Focused, width, m.height+7)
 }

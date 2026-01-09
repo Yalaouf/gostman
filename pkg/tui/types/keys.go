@@ -26,6 +26,7 @@ const (
 	KeyP = "p"
 	KeyQ = "q"
 	KeyR = "r"
+	KeyS = "s"
 	KeyU = "u"
 
 	KeyShiftG = "G"
