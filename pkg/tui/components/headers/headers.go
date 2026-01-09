@@ -51,16 +51,17 @@ func newHeader(key, value string, auto bool) Header {
 func New() Model {
 	vp := viewport.New(40, 4)
 
-	return Model{
-		Headers: []Header{
-			newHeader("Content-Type", "application/json", true),
-		},
+	m := Model{
+		Headers:    []Header{},
 		cursor:     0,
 		fieldFocus: 0,
 		Focused:    false,
 		EditMode:   false,
 		viewport:   vp,
 	}
+
+	m.updateViewportContent()
+	return m
 }
 
 func (m *Model) Focus() tea.Cmd {
@@ -105,7 +106,7 @@ func (m *Model) SetSize(width, height int) {
 	m.width = width
 	m.height = height
 	m.viewport.Width = width - 4
-	m.viewport.Height = height
+	m.viewport.Height = height - 6
 }
 
 func (m *Model) SetContentType(contentType string) {
@@ -368,8 +369,12 @@ func (m Model) View(width int) string {
 		return m.viewPresets(width)
 	}
 
+	topContent := m.viewport.View()
 	footer := style.Unselected.Render("[a]dd [d]el [p]resets [space]toggle [tab]key<>value [esc/enter]validate")
-	content := m.viewport.View() + "\n" + footer
 
-	return style.SectionBox("Headers", content, m.Focused, width)
+	innerHeight := m.height - 4
+	content := lipgloss.Place(width-6, innerHeight, lipgloss.Left, lipgloss.Bottom, footer, lipgloss.WithWhitespaceChars(" "), lipgloss.WithWhitespaceForeground(lipgloss.NoColor{}))
+	content = topContent + "\n" + content
+
+	return style.SectionBox("Headers", content, m.Focused, width, m.height-4)
 }

@@ -15,6 +15,7 @@ type Model struct {
 	Viewport viewport.Model
 	Response request.Response
 	Focused  bool
+	Error    string
 }
 
 func New() Model {
@@ -38,6 +39,7 @@ func (m *Model) SetSize(width, height int) {
 
 func (m *Model) SetResponse(res request.Response) {
 	m.Response = res
+	m.Error = ""
 
 	body := res.Body
 	if utils.IsJSON(res.Body) {
@@ -60,6 +62,12 @@ func (m *Model) SetResponse(res request.Response) {
 
 	m.Viewport.SetContent(content)
 	m.Viewport.GotoTop()
+}
+
+func (m *Model) SetError(err string) {
+	m.Error = err
+	m.Response = request.Response{}
+	m.Viewport.SetContent("")
 }
 
 func (m *Model) Focus() {
@@ -86,9 +94,7 @@ func (m *Model) GotoBottom() {
 	m.Viewport.GotoBottom()
 }
 
-func (m Model) View() string {
-	header := style.SectionTitle.Render("Response")
-
+func (m Model) View(width int) string {
 	borderColor := style.ColorGray
 	if m.Focused {
 		borderColor = style.ColorPurple
@@ -97,7 +103,14 @@ func (m Model) View() string {
 	scrollbarStyle := lipgloss.NewStyle().Foreground(borderColor).MarginLeft(1)
 	scrollbar := scrollbarStyle.Render(RenderScrollbar(m.Viewport))
 
-	body := lipgloss.JoinHorizontal(lipgloss.Top, m.Viewport.View(), scrollbar)
+	var content string
+	if m.Error != "" {
+		content = style.Error.Render("Error: " + m.Error)
+	} else if m.HasResponse() {
+		content = lipgloss.JoinHorizontal(lipgloss.Top, m.Viewport.View(), scrollbar)
+	} else {
+		content = style.Unselected.Render("No response yet. Press Alt+Enter to send a request.")
+	}
 
-	return header + "\n" + body
+	return style.SectionBox("Response", content, m.Focused, width)
 }

@@ -5,25 +5,25 @@ import (
 	"net/http"
 )
 
-type HttpMethod string
+type HTTPMethod string
 
 const (
-	GET     HttpMethod = http.MethodGet
-	POST    HttpMethod = http.MethodPost
-	PUT     HttpMethod = http.MethodPut
-	DELETE  HttpMethod = http.MethodDelete
-	PATCH   HttpMethod = http.MethodPatch
-	OPTIONS HttpMethod = http.MethodOptions
-	HEAD    HttpMethod = http.MethodHead
-	TRACE   HttpMethod = http.MethodTrace
-	CONNECT HttpMethod = http.MethodConnect
+	GET     HTTPMethod = http.MethodGet
+	POST    HTTPMethod = http.MethodPost
+	PUT     HTTPMethod = http.MethodPut
+	DELETE  HTTPMethod = http.MethodDelete
+	PATCH   HTTPMethod = http.MethodPatch
+	OPTIONS HTTPMethod = http.MethodOptions
+	HEAD    HTTPMethod = http.MethodHead
+	TRACE   HTTPMethod = http.MethodTrace
+	CONNECT HTTPMethod = http.MethodConnect
 )
 
 const DefaultTimeout int64 = 30000
 
 type Model struct {
 	Ctx      context.Context
-	Method   HttpMethod
+	Method   HTTPMethod
 	URL      string
 	Body     string
 	BodyType BodyType

@@ -7,6 +7,7 @@ import (
 	"github.com/Yalaouf/gostman/pkg/tui/utils"
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type Model struct {
@@ -14,6 +15,7 @@ type Model struct {
 	BodyType Type
 	Focused  bool
 	EditMode bool
+	height   int
 }
 
 func New() Model {
@@ -46,8 +48,9 @@ func (m Model) Type() Type {
 }
 
 func (m *Model) SetSize(width, height int) {
+	m.height = height
 	m.Editor.SetWidth(width - 6)
-	m.Editor.SetHeight(height - 4)
+	m.Editor.SetHeight(height - 6)
 }
 
 func (m *Model) Focus() tea.Cmd {
@@ -104,8 +107,9 @@ func (m Model) View(width int) string {
 	tabs := m.renderTabs()
 
 	var content string
+	editorHeight := m.height - 6
 	if m.BodyType == TypeNone {
-		content = style.Unselected.Render("No body")
+		content = lipgloss.NewStyle().Height(editorHeight).Render(style.Unselected.Render("No body"))
 	} else if m.EditMode {
 		content = m.Editor.View()
 	} else {
@@ -117,9 +121,14 @@ func (m Model) View(width int) string {
 		}
 	}
 
+	topContent := tabs + "\n" + content
 	footer := style.Unselected.Render("[tab]switch type [enter]edit mode [esc]exit edit")
-	body := tabs + "\n" + content + "\n\n" + footer
-	return style.SectionBox("Body", body, m.Focused, width)
+
+	innerHeight := m.height - 4
+	body := lipgloss.Place(width-6, innerHeight, lipgloss.Left, lipgloss.Bottom, footer, lipgloss.WithWhitespaceChars(" "), lipgloss.WithWhitespaceForeground(lipgloss.NoColor{}))
+	body = topContent + "\n" + body
+
+	return style.SectionBox("Body", body, m.Focused, width, m.height-4)
 }
 
 func (m Model) renderTabs() string {

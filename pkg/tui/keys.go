@@ -23,7 +23,7 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	if key == types.KeyAltEnter {
 		m.loading = true
-		m.errorMsg = ""
+		m.response.Error = ""
 		return m, m.sendRequest()
 	}
 

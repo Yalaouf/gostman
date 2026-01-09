@@ -22,7 +22,6 @@ type Model struct {
 	height int
 
 	loading  bool
-	errorMsg string
 	showHelp bool
 
 	focusSection types.FocusSection
@@ -80,9 +79,16 @@ func (m Model) handleWindowSize(msg tea.WindowSizeMsg) Model {
 	m.width = msg.Width
 	m.height = msg.Height
 	m.url.SetWidth(msg.Width - 10)
-	m.headers.SetSize(msg.Width/2, msg.Height/6)
-	m.body.SetSize(msg.Width/2, msg.Height/5)
-	m.response.SetSize(msg.Width-4, msg.Height/2-1)
+
+	leftWidth := msg.Width / 2
+	rightWidth := msg.Width - leftWidth - 4
+
+	panelHeight := msg.Height - 8
+	sectionHeight := panelHeight / 3
+
+	m.headers.SetSize(leftWidth, sectionHeight)
+	m.body.SetSize(leftWidth, sectionHeight)
+	m.response.SetSize(rightWidth, panelHeight)
 	return m
 }
 
@@ -90,7 +96,7 @@ func (m Model) handleRequestComplete(msg requestMsg) Model {
 	m.loading = false
 
 	if msg.err != nil {
-		m.errorMsg = msg.err.Error()
+		m.response.SetError(msg.err.Error())
 		return m
 	}
 
@@ -121,7 +127,7 @@ func (m Model) buildRequestModel() *request.Model {
 	req.SetURL(m.url.Value())
 	req.SetMethod(m.method.Selected())
 	req.SetBody(m.body.Value())
-	req.SetTimeout(30000)
+	req.SetTimeout(request.DefaultTimeout)
 
 	switch m.body.BodyType {
 	case body.TypeJSON:

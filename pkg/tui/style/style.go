@@ -52,14 +52,18 @@ const (
 
 const ChromaStyle = "catppuccin-mocha"
 
-func SectionBox(title, content string, focused bool, width int) string {
+func SectionBox(title, content string, focused bool, width int, height ...int) string {
 	style := Section
 	if focused {
 		style = FocusedSection
 	}
 
 	header := SectionTitle.Render(title)
-	body := style.Width(width - 4).Render(content)
+	boxStyle := style.Width(width - 4)
+	if len(height) > 0 && height[0] > 0 {
+		boxStyle = boxStyle.Height(height[0])
+	}
+	body := boxStyle.Render(content)
 
 	return header + "\n" + body
 }

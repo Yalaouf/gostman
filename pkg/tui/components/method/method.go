@@ -8,14 +8,14 @@ import (
 )
 
 type Model struct {
-	Methods []request.HttpMethod
+	Methods []request.HTTPMethod
 	Index   int
 	Focused bool
 }
 
 func New() Model {
 	return Model{
-		Methods: []request.HttpMethod{
+		Methods: []request.HTTPMethod{
 			request.GET, request.POST, request.PUT,
 			request.DELETE, request.PATCH, request.HEAD,
 			request.TRACE, request.CONNECT,
@@ -25,7 +25,7 @@ func New() Model {
 	}
 }
 
-func (m Model) Selected() request.HttpMethod {
+func (m Model) Selected() request.HTTPMethod {
 	return m.Methods[m.Index]
 }
 

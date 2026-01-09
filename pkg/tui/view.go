@@ -21,21 +21,22 @@ func (m Model) View() string {
 
 	top := m.url.ViewWithMethod(m.method.ViewSelected(), m.width-2)
 
-	headersView := m.headers.View(m.width / 2)
-	bodyView := m.body.View(m.width / 2)
-	middle := lipgloss.JoinHorizontal(lipgloss.Top, headersView, bodyView)
+	leftWidth := m.width / 2
+	rightWidth := m.width - leftWidth - 2
 
-	var bottom string
-	if m.response.HasResponse() {
-		bottom = m.response.View()
-	}
+	headersView := m.headers.View(leftWidth)
+	bodyView := m.body.View(leftWidth)
+	leftPanel := lipgloss.JoinVertical(lipgloss.Left, headersView, bodyView)
+
+	responseView := m.response.View(rightWidth)
+
+	middle := lipgloss.JoinHorizontal(lipgloss.Top, leftPanel, responseView)
 
 	mainContent := lipgloss.JoinVertical(
 		lipgloss.Left,
 		m.displayTitle(),
 		top,
 		middle,
-		bottom,
 	)
 
 	contentHeight := lipgloss.Height(mainContent)
@@ -57,10 +58,6 @@ func (m Model) statusBar() string {
 	var statusLeft string
 	if m.loading {
 		statusLeft = "Loading..."
-	}
-
-	if m.errorMsg != "" {
-		statusLeft = style.Error.Render("Error: ", m.errorMsg)
 	}
 
 	keyStyle := lipgloss.NewStyle().Foreground(style.ColorGreen)

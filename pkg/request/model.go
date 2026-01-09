@@ -17,7 +17,7 @@ func (m *Model) SetContext(ctx context.Context) *Model {
 	return m
 }
 
-func (m *Model) SetMethod(method HttpMethod) *Model {
+func (m *Model) SetMethod(method HTTPMethod) *Model {
 	m.Method = method
 	return m
 }
