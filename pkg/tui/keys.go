@@ -27,6 +27,10 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m.handleSavePopup(msg)
 	}
 
+	if m.requestMenu.Visible() {
+		return m.handleRequestMenu(msg)
+	}
+
 	if key == types.KeyAltEnter {
 		m.loading = true
 		m.response.Error = ""
@@ -91,6 +95,8 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case types.KeyS:
 		return m, m.savePopup.Show()
+	case types.KeyL:
+		return m, m.requestMenu.Show()
 	}
 
 	switch key {
@@ -266,5 +272,10 @@ func (m Model) handleSavePopup(msg tea.KeyMsg) (Model, tea.Cmd) {
 	}
 
 	cmd := m.savePopup.Update(msg)
+	return m, cmd
+}
+
+func (m Model) handleRequestMenu(msg tea.KeyMsg) (Model, tea.Cmd) {
+	cmd := m.requestMenu.Update(msg)
 	return m, cmd
 }

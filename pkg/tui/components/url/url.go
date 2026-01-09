@@ -27,6 +27,10 @@ func (m Model) Value() string {
 	return m.Input.Value()
 }
 
+func (m *Model) SetValue(value string) {
+	m.Input.SetValue(value)
+}
+
 func (m *Model) SetWidth(width int) {
 	m.Input.Width = width
 }

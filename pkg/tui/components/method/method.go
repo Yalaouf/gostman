@@ -37,6 +37,15 @@ func (m *Model) Previous() {
 	m.Index = (m.Index - 1 + len(m.Methods)) % len(m.Methods)
 }
 
+func (m *Model) SetMethod(method request.HTTPMethod) {
+	for i, meth := range m.Methods {
+		if meth == method {
+			m.Index = i
+			return
+		}
+	}
+}
+
 func (m *Model) Focus() {
 	m.Focused = true
 }

@@ -18,6 +18,10 @@ func (m Model) View() string {
 		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, m.savePopup.View())
 	}
 
+	if m.requestMenu.Visible() {
+		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, m.requestMenu.View())
+	}
+
 	if m.focusSection == types.FocusMethod {
 		picker := m.method.View()
 		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, picker)
@@ -73,6 +77,7 @@ func (m Model) statusBar() string {
 		keyStyle.Render("[b]") + sepStyle.Render("ody ") +
 		keyStyle.Render("[r]") + sepStyle.Render("esponse ") +
 		keyStyle.Render("[s]") + sepStyle.Render("ave ") +
+		keyStyle.Render("[l]") + sepStyle.Render("oad ") +
 		keyStyle.Render("[alt-enter]") + sepStyle.Render("send ") +
 		keyStyle.Render("[q]") + sepStyle.Render("uit")
 

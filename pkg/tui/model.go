@@ -8,6 +8,7 @@ import (
 	"github.com/Yalaouf/gostman/pkg/tui/components/body"
 	"github.com/Yalaouf/gostman/pkg/tui/components/headers"
 	"github.com/Yalaouf/gostman/pkg/tui/components/method"
+	"github.com/Yalaouf/gostman/pkg/tui/components/requestmenu"
 	"github.com/Yalaouf/gostman/pkg/tui/components/response"
 	"github.com/Yalaouf/gostman/pkg/tui/components/savepopup"
 	"github.com/Yalaouf/gostman/pkg/tui/components/url"
@@ -36,8 +37,9 @@ type Model struct {
 	body     body.Model
 	response response.Model
 
-	storage   *storage.Storage
-	savePopup savepopup.Model
+	storage     *storage.Storage
+	savePopup   savepopup.Model
+	requestMenu requestmenu.Model
 }
 
 func New(s *storage.Storage) Model {
@@ -50,6 +52,7 @@ func New(s *storage.Storage) Model {
 		response:     response.New(),
 		storage:      s,
 		savePopup:    savepopup.New(),
+		requestMenu:  requestmenu.New(s),
 	}
 }
 
@@ -64,6 +67,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case requestMsg:
 		return m.handleRequestComplete(msg), nil
+
+	case requestmenu.LoadRequestMsg:
+		return m.handleLoadRequest(msg), nil
 
 	case tea.KeyMsg:
 		return m.handleKeyMsg(msg)
@@ -110,6 +116,32 @@ func (m Model) handleRequestComplete(msg requestMsg) Model {
 	}
 
 	m.response.SetResponse(msg.response)
+	return m
+}
+
+func (m Model) handleLoadRequest(msg requestmenu.LoadRequestMsg) Model {
+	req := msg.Request
+	if req == nil {
+		return m
+	}
+
+	m.method.SetMethod(request.HTTPMethod(req.Method))
+	m.url.SetValue(req.URL)
+	m.headers.SetHeaders(req.Headers)
+	m.body.SetValue(req.Body)
+
+	switch req.BodyType {
+	case "json":
+		m.body.SetType(body.TypeJSON)
+	case "form-data":
+		m.body.SetType(body.TypeFormData)
+	case "urlencoded":
+		m.body.SetType(body.TypeURLEncoded)
+	default:
+		m.body.SetType(body.TypeNone)
+	}
+
+	m.syncContentType()
 	return m
 }
 

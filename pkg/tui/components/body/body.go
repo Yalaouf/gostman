@@ -43,6 +43,14 @@ func (m Model) Value() string {
 	return m.Editor.Value()
 }
 
+func (m *Model) SetValue(value string) {
+	m.Editor.SetValue(value)
+}
+
+func (m *Model) SetType(t Type) {
+	m.BodyType = t
+}
+
 func (m Model) Type() Type {
 	return m.BodyType
 }

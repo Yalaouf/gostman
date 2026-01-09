@@ -146,6 +146,16 @@ func (m Model) EnabledHeaders() map[string]string {
 	return result
 }
 
+func (m *Model) SetHeaders(headers map[string]string) {
+	m.Headers = []Header{}
+	for key, value := range headers {
+		h := newHeader(key, value, false)
+		m.Headers = append(m.Headers, h)
+	}
+	m.cursor = 0
+	m.updateViewportContent()
+}
+
 func (m *Model) addHeader(key, value string) {
 	h := newHeader(key, value, false)
 	m.Headers = append(m.Headers, h)
