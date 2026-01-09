@@ -99,7 +99,7 @@ func (m Model) handleWindowSize(msg tea.WindowSizeMsg) Model {
 	rightWidth := msg.Width - leftWidth - 4
 
 	panelHeight := msg.Height - 8
-	sectionHeight := panelHeight / 3
+	sectionHeight := panelHeight/3 + 1
 
 	m.headers.SetSize(leftWidth, sectionHeight)
 	m.body.SetSize(leftWidth, sectionHeight)
@@ -108,8 +108,7 @@ func (m Model) handleWindowSize(msg tea.WindowSizeMsg) Model {
 }
 
 func (m Model) handleRequestComplete(msg requestMsg) Model {
-	m.loading = false
-
+	m.response.SetLoading(false)
 	if msg.err != nil {
 		m.response.SetError(msg.err.Error())
 		return m

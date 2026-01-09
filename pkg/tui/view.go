@@ -63,11 +63,6 @@ func (m Model) displayTitle() string {
 }
 
 func (m Model) statusBar() string {
-	var statusLeft string
-	if m.loading {
-		statusLeft = "Loading..."
-	}
-
 	keyStyle := lipgloss.NewStyle().Foreground(style.ColorGreen)
 	sepStyle := style.Unselected
 
@@ -83,16 +78,14 @@ func (m Model) statusBar() string {
 
 	helpHint := style.Unselected.Render("? help")
 
-	leftWidth := lipgloss.Width(statusLeft)
 	centerWidth := lipgloss.Width(keybinds)
 	rightWidth := lipgloss.Width(helpHint)
 	totalWidth := m.width - 2
 
-	leftPad := max((totalWidth-centerWidth)/2-leftWidth, 1)
-	rightPad := max(totalWidth-leftWidth-leftPad-centerWidth-rightWidth, 1)
+	leftPad := max((totalWidth-centerWidth)/2, 1)
+	rightPad := max(totalWidth-leftPad-centerWidth-rightWidth, 1)
 
-	return statusLeft +
-		strings.Repeat(" ", leftPad) +
+	return strings.Repeat(" ", leftPad) +
 		keybinds +
 		strings.Repeat(" ", rightPad) +
 		helpHint

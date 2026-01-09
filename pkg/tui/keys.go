@@ -32,7 +32,7 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	}
 
 	if key == types.KeyAltEnter {
-		m.loading = true
+		m.response.SetLoading(true)
 		m.response.Error = ""
 		return m, m.sendRequest()
 	}
@@ -100,7 +100,7 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	}
 
 	switch key {
-	case types.KeyJ, types.KeyDown, types.KeyK, types.KeyUp:
+	case types.KeyJ, types.KeyDown, types.KeyK, types.KeyUp, types.KeyTab:
 		return m.handleNavigation(key), nil
 	}
 
@@ -159,10 +159,13 @@ func (m Model) handleNavigation(key string) Model {
 			m.syncContentType()
 		}
 	case types.FocusResult:
-		if key == types.KeyJ || key == types.KeyDown {
+		switch key {
+		case types.KeyJ, types.KeyDown:
 			m.response.ScrollDown(1)
-		} else {
+		case types.KeyK, types.KeyUp:
 			m.response.ScrollUp(1)
+		case types.KeyTab:
+			m.response.NextTab()
 		}
 	}
 	return m
