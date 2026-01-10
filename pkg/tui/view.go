@@ -22,6 +22,10 @@ func (m Model) View() string {
 		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, m.requestMenu.View())
 	}
 
+	if m.response.IsFullscreen() {
+		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, m.response.ViewFullscreen(m.width, m.height))
+	}
+
 	if m.focusSection == types.FocusMethod {
 		picker := m.method.View()
 		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, picker)

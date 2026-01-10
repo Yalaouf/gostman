@@ -8,5 +8,4 @@ const (
 	FocusHeaders
 	FocusBody
 	FocusResult
-	FocusSavedRequests
 )

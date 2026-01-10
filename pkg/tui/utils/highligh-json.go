@@ -10,7 +10,7 @@ import (
 
 func HighlightJSON(body string) string {
 	var prettyJSON bytes.Buffer
-	if err := json.Indent(&prettyJSON, []byte(body), "", "  "); err != nil {
+	if err := json.Indent(&prettyJSON, []byte(body), "", "  "); err == nil {
 		body = prettyJSON.String()
 	}
 

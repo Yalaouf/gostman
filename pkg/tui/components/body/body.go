@@ -51,10 +51,6 @@ func (m *Model) SetType(t Type) {
 	m.BodyType = t
 }
 
-func (m Model) Type() Type {
-	return m.BodyType
-}
-
 func (m *Model) SetSize(width, height int) {
 	m.height = height
 	m.Editor.SetWidth(width - 6)
@@ -80,12 +76,6 @@ func (m Model) IsFocused() bool {
 func (m *Model) NextType() {
 	idx := int(m.BodyType)
 	idx = (idx + 1) % len(AllTypes)
-	m.BodyType = AllTypes[idx]
-}
-
-func (m *Model) PrevType() {
-	idx := int(m.BodyType)
-	idx = (idx - 1 + len(AllTypes)) % len(AllTypes)
 	m.BodyType = AllTypes[idx]
 }
 

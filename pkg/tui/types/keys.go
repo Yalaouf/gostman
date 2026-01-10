@@ -17,6 +17,7 @@ const (
 	KeyA = "a"
 	KeyB = "b"
 	KeyD = "d"
+	KeyF = "f"
 	KeyG = "g"
 	KeyH = "h"
 	KeyJ = "j"

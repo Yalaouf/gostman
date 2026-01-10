@@ -18,7 +18,7 @@ func New() Model {
 		Methods: []request.HTTPMethod{
 			request.GET, request.POST, request.PUT,
 			request.DELETE, request.PATCH, request.HEAD,
-			request.TRACE, request.CONNECT,
+			request.OPTIONS, request.TRACE, request.CONNECT,
 		},
 		Index:   0,
 		Focused: false,

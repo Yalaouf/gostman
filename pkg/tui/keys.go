@@ -31,6 +31,10 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m.handleRequestMenu(msg)
 	}
 
+	if m.response.IsFullscreen() {
+		return m.handleResponseFullscreen(msg)
+	}
+
 	if key == types.KeyAltEnter {
 		m.response.SetLoading(true)
 		m.response.Error = ""
@@ -107,6 +111,11 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch key {
 	case types.KeyG, types.KeyShiftG:
 		return m.handleScroll(key), nil
+	}
+
+	if key == types.KeyF && m.focusSection == types.FocusResult && m.response.HasResponse() {
+		m.response.ToggleFullscreen()
+		return m, nil
 	}
 
 	if key == types.KeyEnter {
@@ -281,4 +290,26 @@ func (m Model) handleSavePopup(msg tea.KeyMsg) (Model, tea.Cmd) {
 func (m Model) handleRequestMenu(msg tea.KeyMsg) (Model, tea.Cmd) {
 	cmd := m.requestMenu.Update(msg)
 	return m, cmd
+}
+
+func (m Model) handleResponseFullscreen(msg tea.KeyMsg) (Model, tea.Cmd) {
+	key := msg.String()
+
+	switch key {
+	case types.KeyEscape, types.KeyF:
+		m.response.ExitFullscreen()
+		return m, nil
+	case types.KeyJ, types.KeyDown:
+		m.response.ScrollDown(1)
+	case types.KeyK, types.KeyUp:
+		m.response.ScrollUp(1)
+	case types.KeyTab:
+		m.response.NextTab()
+	case types.KeyG:
+		m.response.GotoTop()
+	case types.KeyShiftG:
+		m.response.GotoBottom()
+	}
+
+	return m, nil
 }
