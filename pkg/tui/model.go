@@ -7,6 +7,7 @@ import (
 	"github.com/Yalaouf/gostman/pkg/storage"
 	"github.com/Yalaouf/gostman/pkg/tui/components/body"
 	"github.com/Yalaouf/gostman/pkg/tui/components/headers"
+	"github.com/Yalaouf/gostman/pkg/tui/components/help"
 	"github.com/Yalaouf/gostman/pkg/tui/components/method"
 	"github.com/Yalaouf/gostman/pkg/tui/components/requestmenu"
 	"github.com/Yalaouf/gostman/pkg/tui/components/response"
@@ -36,6 +37,7 @@ type Model struct {
 	headers  headers.Model
 	body     body.Model
 	response response.Model
+	help     help.Model
 
 	storage     *storage.Storage
 	savePopup   savepopup.Model
@@ -50,6 +52,7 @@ func New(s *storage.Storage) Model {
 		headers:      headers.New(),
 		body:         body.New(),
 		response:     response.New(),
+		help:         help.New(),
 		storage:      s,
 		savePopup:    savepopup.New(),
 		requestMenu:  requestmenu.New(s),
@@ -104,6 +107,7 @@ func (m Model) handleWindowSize(msg tea.WindowSizeMsg) Model {
 	m.headers.SetSize(leftWidth, sectionHeight)
 	m.body.SetSize(leftWidth, sectionHeight)
 	m.response.SetSize(rightWidth, sectionHeight*2-3)
+	m.help.SetSize(msg.Width, msg.Height)
 	return m
 }
 

@@ -1,8 +1,6 @@
 package tui
 
 import (
-	"github.com/Yalaouf/gostman/pkg/storage"
-	"github.com/Yalaouf/gostman/pkg/tui/components/body"
 	"github.com/Yalaouf/gostman/pkg/tui/types"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -16,9 +14,13 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	}
 
 	if m.showHelp {
-		if key == types.KeyEscape {
+		switch key {
+		case types.KeyEscape:
 			m.showHelp = false
-			return m, nil
+		case types.KeyJ, types.KeyDown:
+			m.help.ScrollDown()
+		case types.KeyK, types.KeyUp:
+			m.help.ScrollUp()
 		}
 		return m, nil
 	}
@@ -78,7 +80,8 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			return m.handleHeadersInput(msg)
 		}
 
-		if key == types.KeyA || key == types.KeyD || key == types.KeyP || key == types.KeyEnter || key == types.KeySpace {
+		if key == types.KeyA || key == types.KeyD || key == types.KeyP || key == types.KeyEnter ||
+			key == types.KeySpace {
 			return m.handleHeadersInput(msg)
 		}
 	}
@@ -120,195 +123,6 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	if key == types.KeyEnter {
 		return m.handleEnter()
-	}
-
-	return m, nil
-}
-
-func (m Model) handleFocusChange(section types.FocusSection) (Model, tea.Cmd) {
-	m.focusSection = section
-
-	m.method.Blur()
-	m.url.Blur()
-	m.headers.Blur()
-	m.body.Blur()
-	m.response.Blur()
-
-	switch section {
-	case types.FocusMethod:
-		m.method.Focus()
-		return m, nil
-	case types.FocusURL:
-		m.url.Focused = true
-		return m, m.url.Focus()
-	case types.FocusHeaders:
-		m.headers.Focus()
-		return m, nil
-	case types.FocusBody:
-		return m, m.body.Focus()
-	case types.FocusResult:
-		m.response.Focus()
-		return m, nil
-	}
-
-	return m, nil
-}
-
-func (m Model) handleNavigation(key string) Model {
-	switch m.focusSection {
-	case types.FocusMethod:
-		if key == types.KeyJ || key == types.KeyDown {
-			m.method.Next()
-		} else {
-			m.method.Previous()
-		}
-	case types.FocusBody:
-		if key == types.KeyTab {
-			m.body.NextType()
-			m.syncContentType()
-		}
-	case types.FocusResult:
-		switch key {
-		case types.KeyJ, types.KeyDown:
-			m.response.ScrollDown(1)
-		case types.KeyK, types.KeyUp:
-			m.response.ScrollUp(1)
-		case types.KeyTab:
-			m.response.NextTab()
-		}
-	}
-	return m
-}
-
-func (m Model) handleScroll(key string) Model {
-	if m.focusSection != types.FocusResult {
-		return m
-	}
-
-	if key == types.KeyG {
-		m.response.GotoTop()
-	} else {
-		m.response.GotoBottom()
-	}
-	return m
-}
-
-func (m Model) handleEnter() (Model, tea.Cmd) {
-	switch m.focusSection {
-	case types.FocusMethod:
-		return m.handleFocusChange(types.FocusURL)
-	case types.FocusBody:
-		return m, m.body.EnterEditMode()
-	case types.FocusHeaders:
-		return m, m.headers.EnterEditMode()
-	}
-
-	return m, nil
-}
-
-func (m Model) handleEscape() (Model, tea.Cmd) {
-	switch m.focusSection {
-	case types.FocusMethod:
-		m.focusSection = types.FocusURL
-	case types.FocusBody:
-		if m.body.IsFocused() {
-			m.body.ExitEditMode()
-			return m, nil
-		}
-	case types.FocusHeaders:
-		if m.headers.IsFocused() {
-			m.headers.ExitEditMode()
-			return m, nil
-		}
-	}
-	m.url.Blur()
-	return m, nil
-}
-
-func (m Model) handleURLInput(msg tea.Msg) (Model, tea.Cmd) {
-	cmd := m.url.Update(msg)
-	return m, cmd
-}
-
-func (m Model) handleBodyInput(msg tea.Msg) (Model, tea.Cmd) {
-	cmd := m.body.Update(msg)
-	return m, cmd
-}
-
-func (m Model) handleHeadersInput(msg tea.Msg) (Model, tea.Cmd) {
-	cmd := m.headers.Update(msg)
-	return m, cmd
-}
-
-func (m Model) handleSavePopup(msg tea.KeyMsg) (Model, tea.Cmd) {
-	key := msg.String()
-
-	switch key {
-	case types.KeyEscape:
-		m.savePopup.Hide()
-		return m, nil
-
-	case types.KeyEnter:
-		name := m.savePopup.Value()
-		if name == "" {
-			m.savePopup.SetError("Name is required")
-			return m, nil
-		}
-
-		req := &storage.Request{
-			Name:    name,
-			Method:  string(m.method.Selected()),
-			URL:     m.url.Value(),
-			Headers: m.headers.EnabledHeaders(),
-			Body:    m.body.Value(),
-		}
-
-		switch m.body.BodyType {
-		case body.TypeJSON:
-			req.BodyType = "json"
-		case body.TypeFormData:
-			req.BodyType = "form-data"
-		case body.TypeURLEncoded:
-			req.BodyType = "urlencoded"
-		default:
-			req.BodyType = "none"
-		}
-
-		if err := m.storage.SaveRequest(req); err != nil {
-			m.savePopup.SetError(err.Error())
-			return m, nil
-		}
-
-		m.savePopup.Hide()
-		return m, nil
-	}
-
-	cmd := m.savePopup.Update(msg)
-	return m, cmd
-}
-
-func (m Model) handleRequestMenu(msg tea.KeyMsg) (Model, tea.Cmd) {
-	cmd := m.requestMenu.Update(msg)
-	return m, cmd
-}
-
-func (m Model) handleResponseFullscreen(msg tea.KeyMsg) (Model, tea.Cmd) {
-	key := msg.String()
-
-	switch key {
-	case types.KeyEscape, types.KeyF:
-		m.response.ExitFullscreen()
-		return m, nil
-	case types.KeyJ, types.KeyDown:
-		m.response.ScrollDown(1)
-	case types.KeyK, types.KeyUp:
-		m.response.ScrollUp(1)
-	case types.KeyTab:
-		m.response.NextTab()
-	case types.KeyG:
-		m.response.GotoTop()
-	case types.KeyShiftG:
-		m.response.GotoBottom()
 	}
 
 	return m, nil

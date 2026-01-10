@@ -88,7 +88,12 @@ func TestGetCollection(t *testing.T) {
 		c1.Name = "Modified"
 
 		assert.Equal(t, "Test", c2.Name, "modifying returned copy should not affect other copies")
-		assert.Equal(t, "Test", s.store.Collections[0].Name, "modifying returned copy should not affect internal storage")
+		assert.Equal(
+			t,
+			"Test",
+			s.store.Collections[0].Name,
+			"modifying returned copy should not affect internal storage",
+		)
 	})
 
 	t.Run("should return error for non-existent ID", func(t *testing.T) {
@@ -132,7 +137,12 @@ func TestListCollections(t *testing.T) {
 		collections := s.ListCollections()
 		collections[0].Name = "Modified"
 
-		assert.Equal(t, "Test", s.store.Collections[0].Name, "modifying returned slice should not affect internal storage")
+		assert.Equal(
+			t,
+			"Test",
+			s.store.Collections[0].Name,
+			"modifying returned slice should not affect internal storage",
+		)
 	})
 }
 
@@ -162,7 +172,12 @@ func TestUpdateCollection(t *testing.T) {
 
 		updated.Name = "Modified"
 
-		assert.Equal(t, "New Name", s.store.Collections[0].Name, "modifying returned copy should not affect internal storage")
+		assert.Equal(
+			t,
+			"New Name",
+			s.store.Collections[0].Name,
+			"modifying returned copy should not affect internal storage",
+		)
 	})
 
 	t.Run("should persist updated collection", func(t *testing.T) {
@@ -217,20 +232,28 @@ func TestDeleteCollection(t *testing.T) {
 		assert.Empty(t, s.ListCollections())
 	})
 
-	t.Run("should return error when collection has requests and force is false", func(t *testing.T) {
-		s := setupTestStorage(t)
+	t.Run(
+		"should return error when collection has requests and force is false",
+		func(t *testing.T) {
+			s := setupTestStorage(t)
 
-		c, err := s.CreateCollection("Test")
-		require.NoError(t, err)
+			c, err := s.CreateCollection("Test")
+			require.NoError(t, err)
 
-		req := &Request{Name: "Test", Method: "GET", URL: "http://localhost", CollectionID: c.ID}
-		require.NoError(t, s.SaveRequest(req))
+			req := &Request{
+				Name:         "Test",
+				Method:       "GET",
+				URL:          "http://localhost",
+				CollectionID: c.ID,
+			}
+			require.NoError(t, s.SaveRequest(req))
 
-		err = s.DeleteCollection(c.ID, false)
+			err = s.DeleteCollection(c.ID, false)
 
-		assert.ErrorIs(t, err, ErrCollectionNotEmpty)
-		assert.Len(t, s.ListCollections(), 1)
-	})
+			assert.ErrorIs(t, err, ErrCollectionNotEmpty)
+			assert.Len(t, s.ListCollections(), 1)
+		},
+	)
 
 	t.Run("should force delete collection with requests", func(t *testing.T) {
 		s := setupTestStorage(t)
@@ -253,7 +276,12 @@ func TestDeleteCollection(t *testing.T) {
 		c, err := s.CreateCollection("Test")
 		require.NoError(t, err)
 
-		reqInCollection := &Request{Name: "In Collection", Method: "GET", URL: "http://localhost", CollectionID: c.ID}
+		reqInCollection := &Request{
+			Name:         "In Collection",
+			Method:       "GET",
+			URL:          "http://localhost",
+			CollectionID: c.ID,
+		}
 		reqOutside := &Request{Name: "Outside", Method: "GET", URL: "http://localhost"}
 		require.NoError(t, s.SaveRequest(reqInCollection))
 		require.NoError(t, s.SaveRequest(reqOutside))
@@ -297,7 +325,12 @@ func TestDeleteCollection(t *testing.T) {
 		c, err := s.CreateCollection("Test")
 		require.NoError(t, err)
 
-		reqInCollection := &Request{Name: "In Collection", Method: "GET", URL: "http://localhost", CollectionID: c.ID}
+		reqInCollection := &Request{
+			Name:         "In Collection",
+			Method:       "GET",
+			URL:          "http://localhost",
+			CollectionID: c.ID,
+		}
 		reqOutside := &Request{Name: "Outside", Method: "GET", URL: "http://localhost"}
 		require.NoError(t, s.SaveRequest(reqInCollection))
 		require.NoError(t, s.SaveRequest(reqOutside))
@@ -334,7 +367,12 @@ func TestDeleteCollection(t *testing.T) {
 		c, err := s.CreateCollection("Test")
 		require.NoError(t, err)
 
-		reqInCollection := &Request{Name: "In Collection", Method: "GET", URL: "http://localhost", CollectionID: c.ID}
+		reqInCollection := &Request{
+			Name:         "In Collection",
+			Method:       "GET",
+			URL:          "http://localhost",
+			CollectionID: c.ID,
+		}
 		reqOutside := &Request{Name: "Outside", Method: "GET", URL: "http://localhost"}
 		require.NoError(t, s.SaveRequest(reqInCollection))
 		require.NoError(t, s.SaveRequest(reqOutside))
@@ -371,9 +409,24 @@ func TestListRequestsByCollection(t *testing.T) {
 		c2, err := s.CreateCollection("API 2")
 		require.NoError(t, err)
 
-		req1 := &Request{Name: "Request 1", Method: "GET", URL: "http://localhost", CollectionID: c1.ID}
-		req2 := &Request{Name: "Request 2", Method: "POST", URL: "http://localhost", CollectionID: c1.ID}
-		req3 := &Request{Name: "Request 3", Method: "DELETE", URL: "http://localhost", CollectionID: c2.ID}
+		req1 := &Request{
+			Name:         "Request 1",
+			Method:       "GET",
+			URL:          "http://localhost",
+			CollectionID: c1.ID,
+		}
+		req2 := &Request{
+			Name:         "Request 2",
+			Method:       "POST",
+			URL:          "http://localhost",
+			CollectionID: c1.ID,
+		}
+		req3 := &Request{
+			Name:         "Request 3",
+			Method:       "DELETE",
+			URL:          "http://localhost",
+			CollectionID: c2.ID,
+		}
 		require.NoError(t, s.SaveRequest(req1))
 		require.NoError(t, s.SaveRequest(req2))
 		require.NoError(t, s.SaveRequest(req3))
@@ -386,22 +439,34 @@ func TestListRequestsByCollection(t *testing.T) {
 		assert.Equal(t, "Request 3", c2Requests[0].Name)
 	})
 
-	t.Run("should return requests without collection when empty string is passed", func(t *testing.T) {
-		s := setupTestStorage(t)
+	t.Run(
+		"should return requests without collection when empty string is passed",
+		func(t *testing.T) {
+			s := setupTestStorage(t)
 
-		c, err := s.CreateCollection("API")
-		require.NoError(t, err)
+			c, err := s.CreateCollection("API")
+			require.NoError(t, err)
 
-		reqInCollection := &Request{Name: "In Collection", Method: "GET", URL: "http://localhost", CollectionID: c.ID}
-		reqNoCollection := &Request{Name: "No Collection", Method: "GET", URL: "http://localhost"}
-		require.NoError(t, s.SaveRequest(reqInCollection))
-		require.NoError(t, s.SaveRequest(reqNoCollection))
+			reqInCollection := &Request{
+				Name:         "In Collection",
+				Method:       "GET",
+				URL:          "http://localhost",
+				CollectionID: c.ID,
+			}
+			reqNoCollection := &Request{
+				Name:   "No Collection",
+				Method: "GET",
+				URL:    "http://localhost",
+			}
+			require.NoError(t, s.SaveRequest(reqInCollection))
+			require.NoError(t, s.SaveRequest(reqNoCollection))
 
-		requests := s.ListRequestsByCollection("")
+			requests := s.ListRequestsByCollection("")
 
-		assert.Len(t, requests, 1)
-		assert.Equal(t, "No Collection", requests[0].Name)
-	})
+			assert.Len(t, requests, 1)
+			assert.Equal(t, "No Collection", requests[0].Name)
+		},
+	)
 
 	t.Run("should return copies, not internal pointers", func(t *testing.T) {
 		s := setupTestStorage(t)
@@ -415,7 +480,12 @@ func TestListRequestsByCollection(t *testing.T) {
 		requests := s.ListRequestsByCollection(c.ID)
 		requests[0].Name = "Modified"
 
-		assert.Equal(t, "Test", s.store.Requests[0].Name, "modifying returned slice should not affect internal storage")
+		assert.Equal(
+			t,
+			"Test",
+			s.store.Requests[0].Name,
+			"modifying returned slice should not affect internal storage",
+		)
 	})
 }
 
@@ -487,7 +557,11 @@ func TestMoveRequest(t *testing.T) {
 		err = s.MoveRequest(reqID, c.ID)
 
 		require.NoError(t, err)
-		assert.True(t, s.store.Requests[0].UpdatedAt.After(originalUpdatedAt) || s.store.Requests[0].UpdatedAt.Equal(originalUpdatedAt))
+		assert.True(
+			t,
+			s.store.Requests[0].UpdatedAt.After(originalUpdatedAt) ||
+				s.store.Requests[0].UpdatedAt.Equal(originalUpdatedAt),
+		)
 	})
 
 	t.Run("should return error for non-existent request", func(t *testing.T) {

@@ -124,7 +124,10 @@ func TestStorageSaveRequest(t *testing.T) {
 		assert.Equal(t, "POST", updated.Method)
 		assert.Equal(t, "http://example.com", updated.URL)
 		assert.Equal(t, firstCreatedAt, updated.CreatedAt)
-		assert.True(t, updated.UpdatedAt.After(firstCreatedAt) || updated.UpdatedAt.Equal(firstCreatedAt))
+		assert.True(
+			t,
+			updated.UpdatedAt.After(firstCreatedAt) || updated.UpdatedAt.Equal(firstCreatedAt),
+		)
 	})
 
 	t.Run("should return an error for non existing requests", func(t *testing.T) {
@@ -262,7 +265,12 @@ func TestStorageGetRequest(t *testing.T) {
 		r1.Name = "Modified"
 
 		assert.Equal(t, "Test", r2.Name, "modifying returned copy should not affect other copies")
-		assert.Equal(t, "Test", s.store.Requests[0].Name, "modifying returned copy should not affect internal storage")
+		assert.Equal(
+			t,
+			"Test",
+			s.store.Requests[0].Name,
+			"modifying returned copy should not affect internal storage",
+		)
 	})
 
 	t.Run("should return error for non-existent ID", func(t *testing.T) {
@@ -307,7 +315,12 @@ func TestListRequests(t *testing.T) {
 		requests := s.ListRequests()
 		requests[0].Name = "Modified"
 
-		assert.Equal(t, "Test", s.store.Requests[0].Name, "modifying returned slice should not affect internal storage")
+		assert.Equal(
+			t,
+			"Test",
+			s.store.Requests[0].Name,
+			"modifying returned slice should not affect internal storage",
+		)
 	})
 }
 

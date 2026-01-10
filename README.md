@@ -26,7 +26,6 @@ Also I wanted no compromise for simplicity over features, so I decided to write 
 Also Go provides a good [standard library for HTTP requests](https://pkg.go.dev/net/http),
 which makes it easy to implement the core functionality, and the community has
 awesome libraries for building TUIs like [Bubble Tea](https://github.com/charmbracelet/bubbletea) which I used here.\
-Finally, I wanted to improve my Go skills by building a real-world application (which is not a web server).
 
 ## Installation
 
@@ -58,12 +57,12 @@ go install github.com/Yalaouf/gostman@latest
 
 ## Demo
 
-https://github.com/user-attachments/assets/6de7e915-c975-47e3-b07e-281aa690d5d3
-
+https://github.com/user-attachments/assets/8cd3bf7c-4537-4a01-9b5f-a8bffc83b306
 ## Coming Soon
-- Save requests and collections
+- Unit tests on TUI
 - Environment variables
 - Authentication methods (OAuth, Bearer, Basic, etc.)
 - Import Postman and Insomnia files
 - Adding more protocols (graphQL, gRPC, etc...)
+- More themes (only `catppuccin` for now)
 - And more...

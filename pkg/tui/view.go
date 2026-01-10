@@ -3,7 +3,6 @@ package tui
 import (
 	"strings"
 
-	"github.com/Yalaouf/gostman/pkg/tui/components/help"
 	"github.com/Yalaouf/gostman/pkg/tui/style"
 	"github.com/Yalaouf/gostman/pkg/tui/types"
 	"github.com/charmbracelet/lipgloss"
@@ -11,19 +10,37 @@ import (
 
 func (m Model) View() string {
 	if m.showHelp {
-		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, help.View())
+		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, m.help.View())
 	}
 
 	if m.savePopup.Visible() {
-		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, m.savePopup.View())
+		return lipgloss.Place(
+			m.width,
+			m.height,
+			lipgloss.Center,
+			lipgloss.Center,
+			m.savePopup.View(),
+		)
 	}
 
 	if m.requestMenu.Visible() {
-		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, m.requestMenu.View())
+		return lipgloss.Place(
+			m.width,
+			m.height,
+			lipgloss.Center,
+			lipgloss.Center,
+			m.requestMenu.View(),
+		)
 	}
 
 	if m.response.IsFullscreen() {
-		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, m.response.ViewFullscreen(m.width, m.height))
+		return lipgloss.Place(
+			m.width,
+			m.height,
+			lipgloss.Center,
+			lipgloss.Center,
+			m.response.ViewFullscreen(m.width, m.height),
+		)
 	}
 
 	if m.focusSection == types.FocusMethod {
