@@ -104,28 +104,22 @@ func (m *Model) SetSize(width, height int) {
 }
 
 func (m *Model) SetContentType(contentType string) {
-	for i := range m.Headers {
-		if m.Headers[i].Key.Value() == "Content-Type" && m.Headers[i].Auto {
-			if contentType == "" {
-				m.Headers = append(m.Headers[:i], m.Headers[i+1:]...)
-
-				if m.cursor >= len(m.Headers) && m.cursor > 0 {
-					m.cursor--
-				}
-			} else {
-				m.Headers[i].Value.SetValue(contentType)
-			}
-
-			m.updateViewportContent()
-			return
+	for i := len(m.Headers) - 1; i >= 0; i-- {
+		if m.Headers[i].Key.Value() == "Content-Type" {
+			m.Headers = append(m.Headers[:i], m.Headers[i+1:]...)
 		}
+	}
+
+	if m.cursor >= len(m.Headers) && m.cursor > 0 {
+		m.cursor--
 	}
 
 	if contentType != "" {
 		h := newHeader("Content-Type", contentType, true)
 		m.Headers = append([]Header{h}, m.Headers...)
-		m.updateViewportContent()
 	}
+
+	m.updateViewportContent()
 }
 
 func (m Model) EnabledHeaders() map[string]string {
