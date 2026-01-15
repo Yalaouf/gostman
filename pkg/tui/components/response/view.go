@@ -44,7 +44,7 @@ func (m Model) View(width int) string {
 
 	fullContent := tabs + "\n\n" + content
 
-	return style.SectionBox("Response", fullContent, m.Focused, width, m.height+7)
+	return style.SectionBox("Response", fullContent, m.Focused, width, m.height-4)
 }
 
 func (m *Model) ViewFullscreen(width, height int) string {

@@ -87,17 +87,8 @@ func (m Model) View(width int) string {
 		"[a]dd [d]el [p]resets [space]toggle [tab]key<>value [esc/enter]validate",
 	)
 
-	innerHeight := m.height - 4
-	content := lipgloss.Place(
-		width-6,
-		innerHeight,
-		lipgloss.Left,
-		lipgloss.Bottom,
-		footer,
-		lipgloss.WithWhitespaceChars(" "),
-		lipgloss.WithWhitespaceForeground(lipgloss.NoColor{}),
-	)
-	content = topContent + "\n" + content
+	// Combine viewport and footer, constrained to available height
+	content := topContent + "\n" + footer
 
 	return style.SectionBox("Headers", content, m.Focused, width, m.height-4)
 }

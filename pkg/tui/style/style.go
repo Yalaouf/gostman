@@ -16,7 +16,7 @@ var (
 
 var (
 	Error        = lipgloss.NewStyle().Foreground(ColorRed)
-	Title        = lipgloss.NewStyle().Bold(true).Foreground(ColorOrange).Padding(1, 0)
+	Title        = lipgloss.NewStyle().Bold(true).Foreground(ColorOrange)
 	Selected     = lipgloss.NewStyle().Foreground(ColorGreen)
 	Unselected   = lipgloss.NewStyle().Foreground(ColorGray)
 	SectionTitle = lipgloss.NewStyle().Bold(true).Foreground(ColorText)

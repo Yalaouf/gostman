@@ -101,12 +101,12 @@ func (m Model) handleWindowSize(msg tea.WindowSizeMsg) Model {
 	leftWidth := msg.Width / 2
 	rightWidth := msg.Width - leftWidth - 4
 
-	panelHeight := msg.Height - 8
-	sectionHeight := panelHeight/3 + 1
+	panelHeight := msg.Height - 6
+	sectionHeight := panelHeight / 2
 
 	m.headers.SetSize(leftWidth, sectionHeight)
 	m.body.SetSize(leftWidth, sectionHeight)
-	m.response.SetSize(rightWidth, sectionHeight*2-3)
+	m.response.SetSize(rightWidth, panelHeight-1)
 	m.help.SetSize(msg.Width, msg.Height)
 	return m
 }

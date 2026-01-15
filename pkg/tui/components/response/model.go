@@ -38,7 +38,7 @@ func (m *Model) SetSize(width, height int) {
 	m.width = width
 	m.height = height
 	m.Viewport.Width = width - 6
-	m.Viewport.Height = height + 6
+	m.Viewport.Height = height - 8
 }
 
 func (m *Model) SetResponse(res request.Response) {

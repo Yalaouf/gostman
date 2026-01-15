@@ -61,6 +61,8 @@ func (m Model) View() string {
 
 	middle := lipgloss.JoinHorizontal(lipgloss.Top, leftPanel, responseView)
 
+	statusBar := m.statusBar()
+
 	mainContent := lipgloss.JoinVertical(
 		lipgloss.Left,
 		m.displayTitle(),
@@ -68,14 +70,14 @@ func (m Model) View() string {
 		middle,
 	)
 
-	contentHeight := lipgloss.Height(mainContent)
-	spacerHeight := m.height - contentHeight - 1
-	spacer := ""
-	if spacerHeight > 0 {
-		spacer = strings.Repeat("\n", spacerHeight-1)
+	lines := strings.Split(mainContent, "\n")
+	maxLines := m.height - 1
+	if maxLines > 0 && len(lines) > maxLines {
+		lines = lines[:maxLines]
 	}
+	mainContent = strings.Join(lines, "\n")
 
-	return lipgloss.JoinVertical(lipgloss.Left, mainContent, spacer, m.statusBar())
+	return mainContent + "\n\n" + statusBar
 }
 
 func (m Model) displayTitle() string {
