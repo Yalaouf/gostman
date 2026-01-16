@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/Yalaouf/gostman/pkg/tui/style"
+	"github.com/Yalaouf/gostman/pkg/tui/utils"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -39,7 +40,7 @@ func (m Model) View(width int) string {
 		scrollbar := scrollbarStyle.Render(RenderScrollbar(m.Viewport))
 		content = lipgloss.JoinHorizontal(lipgloss.Top, m.Viewport.View(), scrollbar)
 	} else {
-		content = style.Unselected.Render("No response yet. Press Alt/Opt+Enter to send a request.")
+		content = style.Unselected.Render("No response yet. Press " + utils.SendRequestShortcut() + " to send a request.")
 	}
 
 	fullContent := tabs + "\n\n" + content

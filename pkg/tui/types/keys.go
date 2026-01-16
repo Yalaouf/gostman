@@ -2,6 +2,7 @@ package types
 
 const (
 	KeyAltEnter = "alt+enter"
+	KeyCtrlG    = "ctrl+g"
 	KeyCtrlC    = "ctrl+c"
 
 	KeyEnter  = "enter"
