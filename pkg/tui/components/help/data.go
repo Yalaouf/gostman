@@ -25,7 +25,7 @@ var Sections = []Section{
 	{
 		Title: "Actions",
 		Keys: []KeyBinding{
-			{Key: "Alt+Enter", Desc: "Send request"},
+			{Key: "Alt/Option+Enter", Desc: "Send request"},
 			{Key: "Enter", Desc: "Enter edit mode"},
 			{Key: "Esc", Desc: "Exit edit mode"},
 			{Key: "s", Desc: "Save request"},
