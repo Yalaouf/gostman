@@ -10,11 +10,11 @@ import (
 
 func renderContent() string {
 	titleStyle := lipgloss.NewStyle().Bold(true).Foreground(style.ColorOrange)
-	keyStyle := lipgloss.NewStyle().Foreground(style.ColorGreen).Width(14).MarginRight(2)
+	keyStyle := lipgloss.NewStyle().Foreground(style.ColorGreen).Width(16).MarginRight(1)
 	descStyle := lipgloss.NewStyle().Foreground(style.ColorText)
 
 	var lines []string
-	for i, section := range Sections {
+	for i, section := range GetSections() {
 		if i > 0 {
 			lines = append(lines, "")
 		}

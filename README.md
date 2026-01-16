@@ -45,7 +45,7 @@ This will create a binary named `gostman` (or `gostman.exe` on Windows) in the c
 You can also install it directly using `go install`:
 
 ```bash
-go install github.com/Yalaouf/gostman@v0.1.3
+go install github.com/Yalaouf/gostman@v0.1.4
 ```
 
 ## Dependencies

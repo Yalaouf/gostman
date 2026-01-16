@@ -87,7 +87,6 @@ func (m Model) View(width int) string {
 		"[a]dd [d]el [p]resets [space]toggle [tab]key<>value [esc/enter]validate",
 	)
 
-	// Combine viewport and footer, constrained to available height
 	content := topContent + "\n" + footer
 
 	return style.SectionBox("Headers", content, m.Focused, width, m.height-4)

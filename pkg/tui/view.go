@@ -5,6 +5,7 @@ import (
 
 	"github.com/Yalaouf/gostman/pkg/tui/style"
 	"github.com/Yalaouf/gostman/pkg/tui/types"
+	"github.com/Yalaouf/gostman/pkg/tui/utils"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -96,7 +97,7 @@ func (m Model) statusBar() string {
 		keyStyle.Render("[r]") + sepStyle.Render("esponse ") +
 		keyStyle.Render("[s]") + sepStyle.Render("ave ") +
 		keyStyle.Render("[l]") + sepStyle.Render("oad ") +
-		keyStyle.Render("[alt-enter]") + sepStyle.Render("send ") +
+		keyStyle.Render("["+utils.SendRequestShortcut()+"]") + sepStyle.Render("send ") +
 		keyStyle.Render("[q]") + sepStyle.Render("uit")
 
 	helpHint := style.Unselected.Render("? help")

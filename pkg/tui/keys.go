@@ -37,7 +37,7 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m.handleResponseFullscreen(msg)
 	}
 
-	if key == types.KeyAltEnter {
+	if key == types.KeyAltEnter || key == types.KeyCtrlG {
 		m.response.SetLoading(true)
 		m.response.Error = ""
 		return m, m.sendRequest()
