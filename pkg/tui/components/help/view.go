@@ -10,7 +10,7 @@ import (
 
 func renderContent() string {
 	titleStyle := lipgloss.NewStyle().Bold(true).Foreground(style.ColorOrange)
-	keyStyle := lipgloss.NewStyle().Foreground(style.ColorGreen).Width(12).MarginRight(2)
+	keyStyle := lipgloss.NewStyle().Foreground(style.ColorGreen).Width(14).MarginRight(2)
 	descStyle := lipgloss.NewStyle().Foreground(style.ColorText)
 
 	var lines []string
