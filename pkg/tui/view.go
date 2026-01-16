@@ -83,7 +83,7 @@ func (m Model) View() string {
 
 func (m Model) displayTitle() string {
 	title := style.Title.Render("GOSTMAN")
-	return lipgloss.PlaceHorizontal(m.width, lipgloss.Center, title)
+	return lipgloss.PlaceHorizontal(m.width-2, lipgloss.Center, title)
 }
 
 func (m Model) statusBar() string {
