@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/Yalaouf/gostman/pkg/tui/style"
-	"github.com/Yalaouf/gostman/pkg/tui/utils"
 )
 
 func (m Model) View(width int) string {
@@ -16,12 +15,7 @@ func (m Model) View(width int) string {
 	} else if m.EditMode {
 		content = m.Editor.View()
 	} else {
-		raw := m.Editor.Value()
-		if utils.IsJSON(raw) {
-			content = utils.HighlightJSON(raw)
-		} else {
-			content = m.Editor.View()
-		}
+		content = m.Viewport.View()
 	}
 
 	footer := style.Unselected.Render("[tab]switch type [enter]edit mode [esc]exit edit")
