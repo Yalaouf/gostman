@@ -87,6 +87,36 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		}
 	}
 
+	if m.focusSection == types.FocusResult && m.response.IsTreeTab() && m.response.HasTree() {
+		switch key {
+		case types.KeyJ, types.KeyDown:
+			m.response.TreeDown()
+			return m, nil
+		case types.KeyK, types.KeyUp:
+			m.response.TreeUp()
+			return m, nil
+		case types.KeyH, types.KeyLeft:
+			m.response.TreeCollapse()
+			return m, nil
+		case types.KeyL, types.KeyRight:
+			m.response.TreeExpand()
+			return m, nil
+		case types.KeyEnter, types.KeySpace:
+			m.response.TreeToggle()
+			return m, nil
+		case types.KeyTab:
+			m.response.NextTab()
+			return m, nil
+		case types.KeyF:
+			m.response.ToggleFullscreen()
+			return m, nil
+		case types.KeyY:
+			content := m.response.GetContent()
+			clipboard.WriteAll(content)
+			return m, nil
+		}
+	}
+
 	switch key {
 	case types.KeyM:
 		return m.handleFocusChange(types.FocusMethod)

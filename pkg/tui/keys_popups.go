@@ -67,19 +67,44 @@ func (m Model) handleResponseFullscreen(msg tea.KeyMsg) (Model, tea.Cmd) {
 	case types.KeyEscape, types.KeyF:
 		m.response.ExitFullscreen()
 		return m, nil
-	case types.KeyJ, types.KeyDown:
-		m.response.ScrollDown(1)
-	case types.KeyK, types.KeyUp:
-		m.response.ScrollUp(1)
 	case types.KeyTab:
 		m.response.NextTab()
-	case types.KeyG:
-		m.response.GotoTop()
-	case types.KeyShiftG:
-		m.response.GotoBottom()
+		return m, nil
 	case types.KeyY:
 		content := m.response.GetContent()
 		clipboard.WriteAll(content)
+		return m, nil
+	}
+
+	if m.response.IsTreeTab() && m.response.HasTree() {
+		switch key {
+		case types.KeyJ, types.KeyDown:
+			m.response.TreeDown()
+			return m, nil
+		case types.KeyK, types.KeyUp:
+			m.response.TreeUp()
+			return m, nil
+		case types.KeyH, types.KeyLeft:
+			m.response.TreeCollapse()
+			return m, nil
+		case types.KeyL, types.KeyRight:
+			m.response.TreeExpand()
+			return m, nil
+		case types.KeyEnter, types.KeySpace:
+			m.response.TreeToggle()
+			return m, nil
+		}
+	} else {
+		switch key {
+		case types.KeyJ, types.KeyDown:
+			m.response.ScrollDown(1)
+		case types.KeyK, types.KeyUp:
+			m.response.ScrollUp(1)
+		case types.KeyG:
+			m.response.GotoTop()
+		case types.KeyShiftG:
+			m.response.GotoBottom()
+		}
 	}
 
 	return m, nil

@@ -6,9 +6,10 @@ const (
 	TabPretty = iota
 	TabRaw
 	TabHeaders
+	TabTree
 )
 
-var AllTabs = []Tab{TabPretty, TabRaw, TabHeaders}
+var AllTabs = []Tab{TabPretty, TabRaw, TabHeaders, TabTree}
 
 func (t Tab) String() string {
 	switch t {
@@ -18,6 +19,8 @@ func (t Tab) String() string {
 		return "raw"
 	case TabHeaders:
 		return "headers"
+	case TabTree:
+		return "tree"
 	default:
 		return "pretty"
 	}
