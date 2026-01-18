@@ -71,9 +71,13 @@ func (m *Model) ViewFullscreen(width, height int) string {
 		content = style.Unselected.Render("No response yet.")
 	}
 
-	hint := style.Unselected.Render(
-		"[f/esc] close  [j/k] scroll  [tab] switch tab  [g/G] top/bottom",
-	)
+	var hintText string
+	if m.currentTab == TabTree {
+		hintText = "[f/esc] close  [j/k] navigate  [h/l] collapse/expand  [y] copy  [tab] switch"
+	} else {
+		hintText = "[f/esc] close  [j/k] scroll  [tab] switch tab  [g/G] top/bottom"
+	}
+	hint := style.Unselected.Render(hintText)
 	fullContent := tabs + "\n\n" + content + "\n\n" + hint
 
 	box := lipgloss.NewStyle().

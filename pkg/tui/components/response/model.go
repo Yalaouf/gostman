@@ -19,6 +19,7 @@ type Model struct {
 	height     int
 	currentTab Tab
 	fullscreen bool
+	jsonTree   *JSONTree
 }
 
 func New() Model {
@@ -44,6 +45,16 @@ func (m *Model) SetSize(width, height int) {
 func (m *Model) SetResponse(res request.Response) {
 	m.Response = res
 	m.Error = ""
+
+	if utils.IsJSON(res.Body) {
+		m.jsonTree = NewJSONTree(res.Body)
+		if m.jsonTree != nil {
+			m.jsonTree.SetWidth(m.width)
+		}
+	} else {
+		m.jsonTree = nil
+	}
+
 	m.updateViewportContent()
 	m.Viewport.GotoTop()
 }
@@ -94,6 +105,56 @@ func (m *Model) ExitFullscreen() {
 	m.fullscreen = false
 }
 
+func (m *Model) IsTreeTab() bool {
+	return m.currentTab == TabTree
+}
+
+func (m *Model) HasTree() bool {
+	return m.jsonTree != nil
+}
+
+func (m *Model) TreeUp() {
+	if m.jsonTree != nil {
+		m.jsonTree.MoveUp()
+		m.updateViewportContent()
+	}
+}
+
+func (m *Model) TreeDown() {
+	if m.jsonTree != nil {
+		m.jsonTree.MoveDown()
+		m.updateViewportContent()
+	}
+}
+
+func (m *Model) TreeToggle() {
+	if m.jsonTree != nil {
+		m.jsonTree.Toggle()
+		m.updateViewportContent()
+	}
+}
+
+func (m *Model) TreeExpand() {
+	if m.jsonTree != nil {
+		m.jsonTree.Expand()
+		m.updateViewportContent()
+	}
+}
+
+func (m *Model) TreeCollapse() {
+	if m.jsonTree != nil {
+		m.jsonTree.Collapse()
+		m.updateViewportContent()
+	}
+}
+
+func (m *Model) GetSelectedValue() string {
+	if m.jsonTree != nil {
+		return m.jsonTree.GetSelectedValue()
+	}
+	return ""
+}
+
 func (m *Model) NextTab() {
 	i := int(m.currentTab)
 	i = (i + 1) % len(AllTabs)
@@ -117,6 +178,8 @@ func (m *Model) GetContent() string {
 			}
 		}
 		return content
+	case TabTree:
+		return m.GetSelectedValue()
 	}
 	return ""
 }
@@ -161,6 +224,13 @@ func (m *Model) updateViewportContent() {
 		}
 
 		content = body
+	case TabTree:
+		if m.jsonTree != nil {
+			m.jsonTree.SetWidth(m.Viewport.Width)
+			content = m.jsonTree.Render()
+		} else {
+			content = "Response is not valid JSON"
+		}
 	}
 
 	padding := "\n\n"
