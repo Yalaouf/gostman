@@ -61,6 +61,7 @@ func GetSections() []Section {
 				{Key: "g/G", Desc: "Go to top/bottom"},
 				{Key: "Tab", Desc: "Cycle view mode"},
 				{Key: "f", Desc: "Toggle fullscreen"},
+				{Key: "y", Desc: "Copy response"},
 			},
 		},
 		{

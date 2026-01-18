@@ -101,6 +101,26 @@ func (m *Model) NextTab() {
 	m.updateViewportContent()
 }
 
+func (m *Model) GetContent() string {
+	if !m.HasResponse() {
+		return ""
+	}
+
+	switch m.currentTab {
+	case TabPretty, TabRaw:
+		return m.Response.Body
+	case TabHeaders:
+		var content string
+		for key, values := range m.Response.Headers {
+			for _, val := range values {
+				content += fmt.Sprintf("%s: %s\n", key, val)
+			}
+		}
+		return content
+	}
+	return ""
+}
+
 func (m *Model) updateViewportContent() {
 	if !m.HasResponse() {
 		return

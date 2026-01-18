@@ -2,6 +2,7 @@ package tui
 
 import (
 	"github.com/Yalaouf/gostman/pkg/tui/types"
+	"github.com/atotto/clipboard"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -118,6 +119,12 @@ func (m Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 	if key == types.KeyF && m.focusSection == types.FocusResult && m.response.HasResponse() {
 		m.response.ToggleFullscreen()
+		return m, nil
+	}
+
+	if key == types.KeyY && m.focusSection == types.FocusResult && m.response.HasResponse() {
+		content := m.response.GetContent()
+		clipboard.WriteAll(content)
 		return m, nil
 	}
 

@@ -30,6 +30,7 @@ const (
 	KeyR = "r"
 	KeyS = "s"
 	KeyU = "u"
+	KeyY = "y"
 
 	KeyShiftG = "G"
 

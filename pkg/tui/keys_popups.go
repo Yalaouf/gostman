@@ -4,6 +4,7 @@ import (
 	"github.com/Yalaouf/gostman/pkg/storage"
 	"github.com/Yalaouf/gostman/pkg/tui/components/body"
 	"github.com/Yalaouf/gostman/pkg/tui/types"
+	"github.com/atotto/clipboard"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -76,6 +77,9 @@ func (m Model) handleResponseFullscreen(msg tea.KeyMsg) (Model, tea.Cmd) {
 		m.response.GotoTop()
 	case types.KeyShiftG:
 		m.response.GotoBottom()
+	case types.KeyY:
+		content := m.response.GetContent()
+		clipboard.WriteAll(content)
 	}
 
 	return m, nil
